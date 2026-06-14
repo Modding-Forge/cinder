@@ -179,6 +179,53 @@ public final class CinderSodiumConfigEntryPoint implements ConfigEntryPoint {
                                         OptionFlag
                                                 .REQUIRES_RENDERER_RELOAD))))
                 .addPage(builder.createOptionPage()
+                        .setName(Component.literal("Custom Sky"))
+                        .addOptionGroup(builder.createOptionGroup()
+                                .setName(Component.literal(
+                                        "Custom Sky Layers"))
+                                .addOption(booleanOption(builder,
+                                        "custom_sky_enabled",
+                                        "Enable Custom Sky",
+                                        "Render OptiFine sky layers loaded "
+                                                + "from resource packs.",
+                                        CinderConfigDefaults
+                                                .CUSTOM_SKY_ENABLED,
+                                        this.storage::setCustomSkyEnabled,
+                                        this.storage::getCustomSkyEnabled))))
+                .addPage(builder.createOptionPage()
+                        .setName(Component.literal("Terrain"))
+                        .addOptionGroup(builder.createOptionGroup()
+                                .setName(Component.literal(
+                                        "Terrain Details"))
+                                .addOption(booleanOption(builder,
+                                        "natural_textures_enabled",
+                                        "Enable Natural Textures",
+                                        "Apply OptiFine natural.properties "
+                                                + "UV rotations to terrain "
+                                                + "textures.",
+                                        CinderConfigDefaults
+                                                .NATURAL_TEXTURES_ENABLED,
+                                        this.storage
+                                                ::setNaturalTexturesEnabled,
+                                        this.storage
+                                                ::getNaturalTexturesEnabled,
+                                        OptionFlag
+                                                .REQUIRES_RENDERER_RELOAD))
+                                .addOption(booleanOption(builder,
+                                        "better_snow_enabled",
+                                        "Enable Better Snow",
+                                        "Emit OptiFine-style snow layer "
+                                                + "coverage for supported "
+                                                + "non-solid blocks.",
+                                        CinderConfigDefaults
+                                                .BETTER_SNOW_ENABLED,
+                                        this.storage
+                                                ::setBetterSnowEnabled,
+                                        this.storage
+                                                ::getBetterSnowEnabled,
+                                        OptionFlag
+                                                .REQUIRES_RENDERER_RELOAD))))
+                .addPage(builder.createOptionPage()
                         .setName(Component.literal("Better Grass"))
                         .addOptionGroup(builder.createOptionGroup()
                                 .setName(Component.literal("Grass Sides"))
@@ -429,6 +476,14 @@ public final class CinderSodiumConfigEntryPoint implements ConfigEntryPoint {
             replace(withCustomColorsEnabled(value));
         }
 
+        boolean getCustomSkyEnabled() {
+            return CinderConfigHolder.get().customSkyEnabled();
+        }
+
+        void setCustomSkyEnabled(boolean value) {
+            replace(withCustomSkyEnabled(value));
+        }
+
         boolean getCustomAnimationsEnabled() {
             return CinderConfigHolder.get().customAnimationsEnabled();
         }
@@ -533,6 +588,22 @@ public final class CinderSodiumConfigEntryPoint implements ConfigEntryPoint {
             replace(withBetterGrassWarpedNylium(value));
         }
 
+        boolean getNaturalTexturesEnabled() {
+            return CinderConfigHolder.get().naturalTexturesEnabled();
+        }
+
+        void setNaturalTexturesEnabled(boolean value) {
+            replace(withNaturalTexturesEnabled(value));
+        }
+
+        boolean getBetterSnowEnabled() {
+            return CinderConfigHolder.get().betterSnowEnabled();
+        }
+
+        void setBetterSnowEnabled(boolean value) {
+            replace(withBetterSnowEnabled(value));
+        }
+
         void flush() {
             FabricConfigLoader.save(this.configDir, CinderConfigHolder.get());
         }
@@ -554,7 +625,10 @@ public final class CinderSodiumConfigEntryPoint implements ConfigEntryPoint {
                     cfg.betterGrassMycelium(), cfg.betterGrassPodzol(),
                     cfg.betterGrassCrimsonNylium(),
                     cfg.betterGrassWarpedNylium(), cfg.citEnabled(),
-                    cfg.customGuiEnabled(), cfg.customColorsEnabled(), cfg.customAnimationsEnabled(), cfg.customAnimationMipmapDistance());
+                    cfg.customGuiEnabled(), cfg.customColorsEnabled(),
+                    cfg.customSkyEnabled(), cfg.naturalTexturesEnabled(),
+                    cfg.betterSnowEnabled(), cfg.customAnimationsEnabled(),
+                    cfg.customAnimationMipmapDistance());
         }
 
         private static CinderConfig withSafeMode(boolean value) {
@@ -570,7 +644,10 @@ public final class CinderSodiumConfigEntryPoint implements ConfigEntryPoint {
                     cfg.betterGrassMycelium(), cfg.betterGrassPodzol(),
                     cfg.betterGrassCrimsonNylium(),
                     cfg.betterGrassWarpedNylium(), cfg.citEnabled(),
-                    cfg.customGuiEnabled(), cfg.customColorsEnabled(), cfg.customAnimationsEnabled(), cfg.customAnimationMipmapDistance());
+                    cfg.customGuiEnabled(), cfg.customColorsEnabled(),
+                    cfg.customSkyEnabled(), cfg.naturalTexturesEnabled(),
+                    cfg.betterSnowEnabled(), cfg.customAnimationsEnabled(),
+                    cfg.customAnimationMipmapDistance());
         }
 
         private static CinderConfig withVerifyMode(boolean value) {
@@ -586,7 +663,10 @@ public final class CinderSodiumConfigEntryPoint implements ConfigEntryPoint {
                     cfg.betterGrassMycelium(), cfg.betterGrassPodzol(),
                     cfg.betterGrassCrimsonNylium(),
                     cfg.betterGrassWarpedNylium(), cfg.citEnabled(),
-                    cfg.customGuiEnabled(), cfg.customColorsEnabled(), cfg.customAnimationsEnabled(), cfg.customAnimationMipmapDistance());
+                    cfg.customGuiEnabled(), cfg.customColorsEnabled(),
+                    cfg.customSkyEnabled(), cfg.naturalTexturesEnabled(),
+                    cfg.betterSnowEnabled(), cfg.customAnimationsEnabled(),
+                    cfg.customAnimationMipmapDistance());
         }
 
         private static CinderConfig withCtmDebugLogging(boolean value) {
@@ -602,7 +682,10 @@ public final class CinderSodiumConfigEntryPoint implements ConfigEntryPoint {
                     cfg.betterGrassMycelium(), cfg.betterGrassPodzol(),
                     cfg.betterGrassCrimsonNylium(),
                     cfg.betterGrassWarpedNylium(), cfg.citEnabled(),
-                    cfg.customGuiEnabled(), cfg.customColorsEnabled(), cfg.customAnimationsEnabled(), cfg.customAnimationMipmapDistance());
+                    cfg.customGuiEnabled(), cfg.customColorsEnabled(),
+                    cfg.customSkyEnabled(), cfg.naturalTexturesEnabled(),
+                    cfg.betterSnowEnabled(), cfg.customAnimationsEnabled(),
+                    cfg.customAnimationMipmapDistance());
         }
 
         private static CinderConfig withCitEnabled(boolean value) {
@@ -619,7 +702,10 @@ public final class CinderSodiumConfigEntryPoint implements ConfigEntryPoint {
                     cfg.betterGrassMycelium(), cfg.betterGrassPodzol(),
                     cfg.betterGrassCrimsonNylium(),
                     cfg.betterGrassWarpedNylium(), value,
-                    cfg.customGuiEnabled(), cfg.customColorsEnabled(), cfg.customAnimationsEnabled(), cfg.customAnimationMipmapDistance());
+                    cfg.customGuiEnabled(), cfg.customColorsEnabled(),
+                    cfg.customSkyEnabled(), cfg.naturalTexturesEnabled(),
+                    cfg.betterSnowEnabled(), cfg.customAnimationsEnabled(),
+                    cfg.customAnimationMipmapDistance());
         }
 
         private static CinderConfig withCustomGuiEnabled(boolean value) {
@@ -637,6 +723,9 @@ public final class CinderSodiumConfigEntryPoint implements ConfigEntryPoint {
                     cfg.betterGrassCrimsonNylium(),
                     cfg.betterGrassWarpedNylium(), cfg.citEnabled(), value,
                     cfg.customColorsEnabled(),
+                    cfg.customSkyEnabled(),
+                    cfg.naturalTexturesEnabled(),
+                    cfg.betterSnowEnabled(),
                     cfg.customAnimationsEnabled(),
                     cfg.customAnimationMipmapDistance());
         }
@@ -656,7 +745,72 @@ public final class CinderSodiumConfigEntryPoint implements ConfigEntryPoint {
                     cfg.betterGrassCrimsonNylium(),
                     cfg.betterGrassWarpedNylium(), cfg.citEnabled(),
                     cfg.customGuiEnabled(), value,
+                    cfg.customSkyEnabled(),
+                    cfg.naturalTexturesEnabled(),
+                    cfg.betterSnowEnabled(),
                     cfg.customAnimationsEnabled(),
+                    cfg.customAnimationMipmapDistance());
+        }
+
+        private static CinderConfig withCustomSkyEnabled(boolean value) {
+            CinderConfig cfg = CinderConfigHolder.get();
+            return new CinderConfig(cfg.enabled(), cfg.safeMode(),
+                    cfg.verifyMode(), cfg.ctmEnabled(),
+                    cfg.ctmDebugLogging(),
+                    cfg.duplicateTranslucentBackfaces(),
+                    cfg.betterGrassMode(),
+                    cfg.betterGrassIgnoreResourcePack(),
+                    cfg.betterGrassGrassBlock(),
+                    cfg.betterGrassSnowyGrassBlock(),
+                    cfg.betterGrassDirtPath(), cfg.betterGrassFarmland(),
+                    cfg.betterGrassMycelium(), cfg.betterGrassPodzol(),
+                    cfg.betterGrassCrimsonNylium(),
+                    cfg.betterGrassWarpedNylium(), cfg.citEnabled(),
+                    cfg.customGuiEnabled(), cfg.customColorsEnabled(), value,
+                    cfg.naturalTexturesEnabled(),
+                    cfg.betterSnowEnabled(),
+                    cfg.customAnimationsEnabled(),
+                    cfg.customAnimationMipmapDistance());
+        }
+
+        private static CinderConfig withNaturalTexturesEnabled(
+                boolean value) {
+            CinderConfig cfg = CinderConfigHolder.get();
+            return new CinderConfig(cfg.enabled(), cfg.safeMode(),
+                    cfg.verifyMode(), cfg.ctmEnabled(),
+                    cfg.ctmDebugLogging(),
+                    cfg.duplicateTranslucentBackfaces(),
+                    cfg.betterGrassMode(),
+                    cfg.betterGrassIgnoreResourcePack(),
+                    cfg.betterGrassGrassBlock(),
+                    cfg.betterGrassSnowyGrassBlock(),
+                    cfg.betterGrassDirtPath(), cfg.betterGrassFarmland(),
+                    cfg.betterGrassMycelium(), cfg.betterGrassPodzol(),
+                    cfg.betterGrassCrimsonNylium(),
+                    cfg.betterGrassWarpedNylium(), cfg.citEnabled(),
+                    cfg.customGuiEnabled(), cfg.customColorsEnabled(),
+                    cfg.customSkyEnabled(), value, cfg.betterSnowEnabled(),
+                    cfg.customAnimationsEnabled(),
+                    cfg.customAnimationMipmapDistance());
+        }
+
+        private static CinderConfig withBetterSnowEnabled(boolean value) {
+            CinderConfig cfg = CinderConfigHolder.get();
+            return new CinderConfig(cfg.enabled(), cfg.safeMode(),
+                    cfg.verifyMode(), cfg.ctmEnabled(),
+                    cfg.ctmDebugLogging(),
+                    cfg.duplicateTranslucentBackfaces(),
+                    cfg.betterGrassMode(),
+                    cfg.betterGrassIgnoreResourcePack(),
+                    cfg.betterGrassGrassBlock(),
+                    cfg.betterGrassSnowyGrassBlock(),
+                    cfg.betterGrassDirtPath(), cfg.betterGrassFarmland(),
+                    cfg.betterGrassMycelium(), cfg.betterGrassPodzol(),
+                    cfg.betterGrassCrimsonNylium(),
+                    cfg.betterGrassWarpedNylium(), cfg.citEnabled(),
+                    cfg.customGuiEnabled(), cfg.customColorsEnabled(),
+                    cfg.customSkyEnabled(), cfg.naturalTexturesEnabled(),
+                    value, cfg.customAnimationsEnabled(),
                     cfg.customAnimationMipmapDistance());
         }
 
@@ -675,7 +829,9 @@ public final class CinderSodiumConfigEntryPoint implements ConfigEntryPoint {
                     cfg.betterGrassMycelium(), cfg.betterGrassPodzol(),
                     cfg.betterGrassCrimsonNylium(),
                     cfg.betterGrassWarpedNylium(), cfg.citEnabled(),
-                    cfg.customGuiEnabled(), cfg.customColorsEnabled(), value,
+                    cfg.customGuiEnabled(), cfg.customColorsEnabled(),
+                    cfg.customSkyEnabled(), cfg.naturalTexturesEnabled(),
+                    cfg.betterSnowEnabled(), value,
                     cfg.customAnimationMipmapDistance());
         }
 
@@ -694,7 +850,9 @@ public final class CinderSodiumConfigEntryPoint implements ConfigEntryPoint {
                     cfg.betterGrassMycelium(), cfg.betterGrassPodzol(),
                     cfg.betterGrassCrimsonNylium(),
                     cfg.betterGrassWarpedNylium(), cfg.citEnabled(),
-                    cfg.customGuiEnabled(), cfg.customColorsEnabled(), cfg.customAnimationsEnabled(),
+                    cfg.customGuiEnabled(), cfg.customColorsEnabled(),
+                    cfg.customSkyEnabled(), cfg.naturalTexturesEnabled(),
+                    cfg.betterSnowEnabled(), cfg.customAnimationsEnabled(),
                     value);
         }
 
@@ -712,7 +870,10 @@ public final class CinderSodiumConfigEntryPoint implements ConfigEntryPoint {
                     cfg.betterGrassMycelium(), cfg.betterGrassPodzol(),
                     cfg.betterGrassCrimsonNylium(),
                     cfg.betterGrassWarpedNylium(), cfg.citEnabled(),
-                    cfg.customGuiEnabled(), cfg.customColorsEnabled(), cfg.customAnimationsEnabled(), cfg.customAnimationMipmapDistance());
+                    cfg.customGuiEnabled(), cfg.customColorsEnabled(),
+                    cfg.customSkyEnabled(), cfg.naturalTexturesEnabled(),
+                    cfg.betterSnowEnabled(), cfg.customAnimationsEnabled(),
+                    cfg.customAnimationMipmapDistance());
         }
 
         private static CinderConfig withBetterGrassMode(
@@ -728,7 +889,10 @@ public final class CinderSodiumConfigEntryPoint implements ConfigEntryPoint {
                     cfg.betterGrassMycelium(), cfg.betterGrassPodzol(),
                     cfg.betterGrassCrimsonNylium(),
                     cfg.betterGrassWarpedNylium(), cfg.citEnabled(),
-                    cfg.customGuiEnabled(), cfg.customColorsEnabled(), cfg.customAnimationsEnabled(), cfg.customAnimationMipmapDistance());
+                    cfg.customGuiEnabled(), cfg.customColorsEnabled(),
+                    cfg.customSkyEnabled(), cfg.naturalTexturesEnabled(),
+                    cfg.betterSnowEnabled(), cfg.customAnimationsEnabled(),
+                    cfg.customAnimationMipmapDistance());
         }
 
         private static CinderConfig withBetterGrassIgnoreResourcePack(
@@ -744,7 +908,10 @@ public final class CinderSodiumConfigEntryPoint implements ConfigEntryPoint {
                     cfg.betterGrassMycelium(), cfg.betterGrassPodzol(),
                     cfg.betterGrassCrimsonNylium(),
                     cfg.betterGrassWarpedNylium(), cfg.citEnabled(),
-                    cfg.customGuiEnabled(), cfg.customColorsEnabled(), cfg.customAnimationsEnabled(), cfg.customAnimationMipmapDistance());
+                    cfg.customGuiEnabled(), cfg.customColorsEnabled(),
+                    cfg.customSkyEnabled(), cfg.naturalTexturesEnabled(),
+                    cfg.betterSnowEnabled(), cfg.customAnimationsEnabled(),
+                    cfg.customAnimationMipmapDistance());
         }
 
         private static CinderConfig withBetterGrassGrassBlock(boolean value) {
@@ -843,7 +1010,9 @@ public final class CinderSodiumConfigEntryPoint implements ConfigEntryPoint {
                     cfg.betterGrassIgnoreResourcePack(),
                     grassBlock, snowyGrassBlock,
                     dirtPath, farmland, mycelium, podzol, crimsonNylium,
-                    warpedNylium, cfg.citEnabled(), cfg.customGuiEnabled(), cfg.customColorsEnabled(),
+                    warpedNylium, cfg.citEnabled(), cfg.customGuiEnabled(),
+                    cfg.customColorsEnabled(), cfg.customSkyEnabled(),
+                    cfg.naturalTexturesEnabled(), cfg.betterSnowEnabled(),
                     cfg.customAnimationsEnabled(),
                     cfg.customAnimationMipmapDistance());
         }

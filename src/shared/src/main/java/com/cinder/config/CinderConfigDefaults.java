@@ -25,6 +25,12 @@ package com.cinder.config;
  *       unless a compatibility adapter disables it)</li>
  *   <li>{@code custom_colors.enabled} = true (OptiFine Custom Colors is
  *       active unless Colormatic is present)</li>
+ *   <li>{@code custom_sky.enabled} = true (OptiFine Custom Sky layers are
+ *       active unless a compatibility adapter disables them)</li>
+ *   <li>{@code natural_textures.enabled} = true (OptiFine Natural Textures
+ *       are active for terrain quads)</li>
+ *   <li>{@code better_snow.enabled} = true (OptiFine-style snow layer
+ *       coverage is active for supported non-solid blocks)</li>
  *   <li>{@code custom_animations.enabled} = true (OptiFine custom texture
  *       animations are active unless a compatibility adapter disables them)</li>
  * </ul>
@@ -77,6 +83,15 @@ public final class CinderConfigDefaults {
     /** Custom Colors and Colormaps feature toggle. */
     public static final boolean CUSTOM_COLORS_ENABLED = true;
 
+    /** Custom Sky feature toggle. */
+    public static final boolean CUSTOM_SKY_ENABLED = true;
+
+    /** Natural Textures feature toggle. */
+    public static final boolean NATURAL_TEXTURES_ENABLED = true;
+
+    /** Better Snow feature toggle. */
+    public static final boolean BETTER_SNOW_ENABLED = true;
+
     /** Custom texture animations feature toggle. */
     public static final boolean CUSTOM_ANIMATIONS_ENABLED = true;
 
@@ -107,6 +122,9 @@ public final class CinderConfigDefaults {
                 CIT_ENABLED,
                 CUSTOM_GUI_ENABLED,
                 CUSTOM_COLORS_ENABLED,
+                CUSTOM_SKY_ENABLED,
+                NATURAL_TEXTURES_ENABLED,
+                BETTER_SNOW_ENABLED,
                 CUSTOM_ANIMATIONS_ENABLED,
                 CUSTOM_ANIMATION_MIPMAP_DISTANCE);
     }

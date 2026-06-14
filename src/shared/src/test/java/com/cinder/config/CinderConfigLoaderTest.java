@@ -43,6 +43,10 @@ class CinderConfigLoaderTest {
                 cfg.betterGrassCrimsonNylium());
         assertEquals(CinderConfigDefaults.BETTER_GRASS_WARPED_NYLIUM,
                 cfg.betterGrassWarpedNylium());
+        assertEquals(CinderConfigDefaults.NATURAL_TEXTURES_ENABLED,
+                cfg.naturalTexturesEnabled());
+        assertEquals(CinderConfigDefaults.BETTER_SNOW_ENABLED,
+                cfg.betterSnowEnabled());
         assertEquals(CinderConfigDefaults.CUSTOM_ANIMATIONS_ENABLED,
                 cfg.customAnimationsEnabled());
         assertEquals(CinderConfigDefaults.CUSTOM_ANIMATION_MIPMAP_DISTANCE,
@@ -67,6 +71,8 @@ class CinderConfigLoaderTest {
                 + "cinder.better_grass.podzol = false\n"
                 + "cinder.better_grass.crimson_nylium = false\n"
                 + "cinder.better_grass.warped_nylium = false\n"
+                + "cinder.natural_textures.enabled = false\n"
+                + "cinder.better_snow.enabled = false\n"
                 + "cinder.custom_animations.enabled = false\n"
                 + "cinder.custom_animations.mipmap_distance = 2\n";
         CinderConfig cfg = CinderConfigLoader.load(new StringReader(body));
@@ -86,6 +92,8 @@ class CinderConfigLoaderTest {
         assertFalse(cfg.betterGrassPodzol());
         assertFalse(cfg.betterGrassCrimsonNylium());
         assertFalse(cfg.betterGrassWarpedNylium());
+        assertFalse(cfg.naturalTexturesEnabled());
+        assertFalse(cfg.betterSnowEnabled());
         assertFalse(cfg.customAnimationsEnabled());
         assertEquals(2, cfg.customAnimationMipmapDistance());
     }

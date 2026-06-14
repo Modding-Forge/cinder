@@ -1,5 +1,6 @@
 package com.cinder.config;
 
+import com.cinder.resource.OptifinePropertyParsers;
 import com.cinder.resource.PropertiesFile;
 
 import java.io.IOException;
@@ -38,6 +39,9 @@ import java.util.Objects;
  * cinder.cit.enabled = true
  * cinder.custom_gui.enabled = true
  * cinder.custom_colors.enabled = true
+ * cinder.custom_sky.enabled = true
+ * cinder.natural_textures.enabled = true
+ * cinder.better_snow.enabled = true
  * cinder.custom_animations.enabled = true
  * cinder.custom_animations.mipmap_distance = 4
  * </pre>
@@ -129,6 +133,15 @@ public final class CinderConfigLoader {
         boolean customColorsEnabled = readBool(props,
                 "cinder.custom_colors.enabled",
                 CinderConfigDefaults.CUSTOM_COLORS_ENABLED);
+        boolean customSkyEnabled = readBool(props,
+                "cinder.custom_sky.enabled",
+                CinderConfigDefaults.CUSTOM_SKY_ENABLED);
+        boolean naturalTexturesEnabled = readBool(props,
+                "cinder.natural_textures.enabled",
+                CinderConfigDefaults.NATURAL_TEXTURES_ENABLED);
+        boolean betterSnowEnabled = readBool(props,
+                "cinder.better_snow.enabled",
+                CinderConfigDefaults.BETTER_SNOW_ENABLED);
         boolean customAnimationsEnabled = readBool(props,
                 "cinder.custom_animations.enabled",
                 CinderConfigDefaults.CUSTOM_ANIMATIONS_ENABLED);
@@ -145,23 +158,16 @@ public final class CinderConfigLoader {
                 betterGrassFarmland, betterGrassMycelium, betterGrassPodzol,
                 betterGrassCrimsonNylium, betterGrassWarpedNylium,
                 citEnabled, customGuiEnabled, customColorsEnabled,
+                customSkyEnabled,
+                naturalTexturesEnabled,
+                betterSnowEnabled,
                 customAnimationsEnabled,
                 customAnimationMipmapDistance);
     }
 
     private static boolean readBool(PropertiesFile props, String key, boolean fallback) {
-        String v = props.get(key);
-        if (v == null) {
-            return fallback;
-        }
-        String trimmed = v.trim();
-        if (trimmed.equalsIgnoreCase("true") || trimmed.equals("1")) {
-            return true;
-        }
-        if (trimmed.equalsIgnoreCase("false") || trimmed.equals("0")) {
-            return false;
-        }
-        return fallback;
+        return OptifinePropertyParsers.parseBoolean(props.get(key),
+                fallback);
     }
 
     private static int readInt(PropertiesFile props,
@@ -169,18 +175,7 @@ public final class CinderConfigLoader {
                                int fallback,
                                int min,
                                int max) {
-        String v = props.get(key);
-        if (v == null) {
-            return fallback;
-        }
-        try {
-            int parsed = Integer.parseInt(v.trim());
-            if (parsed < min || parsed > max) {
-                return fallback;
-            }
-            return parsed;
-        } catch (NumberFormatException e) {
-            return fallback;
-        }
+        return OptifinePropertyParsers.parseIntOrDefault(props.get(key),
+                fallback, min, max);
     }
 }

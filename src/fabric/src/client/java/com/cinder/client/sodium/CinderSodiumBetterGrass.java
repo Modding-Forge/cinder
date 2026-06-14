@@ -5,6 +5,7 @@ import com.cinder.bettergrass.BetterGrassRules;
 import com.cinder.config.BetterGrassMode;
 import com.cinder.config.CinderConfig;
 import com.cinder.config.CinderConfigHolder;
+import com.cinder.resource.NamespaceId;
 import net.caffeinemc.mods.sodium.client.render.model.MutableQuadViewImpl;
 import net.caffeinemc.mods.sodium.client.render.texture.SpriteFinderCache;
 import net.minecraft.client.renderer.block.BlockAndTintGetter;
@@ -46,9 +47,10 @@ public final class CinderSodiumBetterGrass {
     private static final int MULTILAYER_FALLBACK_LOG_LIMIT = 8;
     private static final AtomicInteger MULTILAYER_FALLBACK_LOGS =
             new AtomicInteger();
-    private static final com.cinder.resource.NamespaceId MOIST_FARMLAND =
-            new com.cinder.resource.NamespaceId(
-                    "minecraft", "block/farmland_moist");
+    private static final NamespaceId MOIST_FARMLAND =
+            new NamespaceId("minecraft", "block/farmland_moist");
+    private static final NamespaceId VANILLA_SNOWY_SIDE =
+            new NamespaceId("minecraft", "block/grass_block_snow");
     private static final BlockFamily[] BLOCK_FAMILIES = {
             new BlockFamily(Blocks.GRASS_BLOCK,
                     BetterGrassFamily.GRASS,
@@ -75,6 +77,52 @@ public final class CinderSodiumBetterGrass {
 
     private final CtmSodiumSpriteLookup spriteLookup =
             new CtmSodiumSpriteLookup();
+
+    /**
+     * Applies Cinder's Better-Grass-owned snow side cover to full solid side
+     * faces. This deliberately stays separate from Better Snow, which emits
+     * OptiFine-style snow layer geometry for non-solid blocks.
+     *
+     * @return {@code true} when the quad was remapped
+     */
+    public boolean applySnowSideRemap(MutableQuadViewImpl quad,
+                                      BlockAndTintGetter level,
+                                      BlockState state,
+                                      BlockPos pos) {
+        CinderConfig config = CinderConfigHolder.get();
+        if (!config.betterGrassActive()
+                || level == null || state == null || pos == null) {
+            return false;
+        }
+        BetterGrassRules rules = BetterGrassRules.current(config);
+        Direction direction = faceDirection(quad);
+        if (direction == null || direction.getAxis() == Direction.Axis.Y) {
+            return false;
+        }
+        boolean realSnowCover = isSnowyBlock(level.getBlockState(pos.above()));
+        boolean fakeSnowCover = hasFakeSnowCoverAbove(level, state, pos);
+        if (!snowSideEligible(state)
+                || (!realSnowCover && !fakeSnowCover)
+                || !isFullExteriorFace(quad, direction, 1.0F)) {
+            return false;
+        }
+        TextureAtlasSprite source = sourceSprite(quad);
+        NamespaceId targetId =
+                rules.enabled(BetterGrassFamily.GRASS_SNOW)
+                        ? rules.texture(BetterGrassFamily.GRASS_SNOW)
+                        : vanillaSnowySideTarget(state, fakeSnowCover);
+        if (targetId == null) {
+            return false;
+        }
+        TextureAtlasSprite target = spriteLookup.sprite(targetId);
+        if (source == null || target == null
+                || source.contents().name().equals(target.contents().name())) {
+            return false;
+        }
+        CtmSodiumQuadProcessor.remapSprite(quad, source, target);
+        quad.setTintIndex(-1);
+        return true;
+    }
 
     /**
      * Applies Better Grass to one Sodium quad if the active mode wants it.
@@ -189,6 +237,44 @@ public final class CinderSodiumBetterGrass {
         return quad.sprite(SpriteFinderCache.forBlockAtlas());
     }
 
+    private static boolean snowSideEligible(BlockState state) {
+        Block block = state.getBlock();
+        return state.isSolidRender()
+                && block != Blocks.SNOW
+                && block != Blocks.SNOW_BLOCK
+                && block != Blocks.ICE
+                && block != Blocks.PACKED_ICE
+                && block != Blocks.BLUE_ICE;
+    }
+
+    private static boolean isSnowyBlock(BlockState state) {
+        return state.is(Blocks.SNOW) || state.is(Blocks.SNOW_BLOCK);
+    }
+
+    private static boolean hasFakeSnowCoverAbove(BlockAndTintGetter level,
+                                                 BlockState state,
+                                                 BlockPos pos) {
+        BlockPos abovePos = pos.above();
+        BlockState above = level.getBlockState(abovePos);
+        return isSnowDirtFamily(state)
+                && CinderSodiumBetterSnow.shouldRenderLayer(level, above,
+                abovePos);
+    }
+
+    private static @Nullable NamespaceId vanillaSnowySideTarget(
+            BlockState state,
+            boolean fakeSnowCover) {
+        return fakeSnowCover && isSnowDirtFamily(state)
+                ? VANILLA_SNOWY_SIDE
+                : null;
+    }
+
+    private static boolean isSnowDirtFamily(BlockState state) {
+        return state.is(Blocks.GRASS_BLOCK)
+                || state.is(Blocks.MYCELIUM)
+                || state.is(Blocks.PODZOL);
+    }
+
     private static void logMultilayerFallback() {
         if (!CinderConfigHolder.get().ctmDebugLogging()) {
             return;
@@ -289,7 +375,7 @@ public final class CinderSodiumBetterGrass {
                                boolean tinted,
                                float sideHeight,
                                boolean extendsToDirtSupport) {
-        private com.cinder.resource.NamespaceId topSprite(
+        private NamespaceId topSprite(
                 BetterGrassRules rules,
                 BlockAndTintGetter level,
                 BlockPos pos,
@@ -357,7 +443,10 @@ public final class CinderSodiumBetterGrass {
                 return false;
             }
             BlockState above = level.getBlockState(pos.above());
-            return above.is(Blocks.SNOW) || above.is(Blocks.SNOW_BLOCK);
+            return above.is(Blocks.SNOW)
+                    || above.is(Blocks.SNOW_BLOCK)
+                    || CinderSodiumBetterSnow.shouldRenderLayer(level, above,
+                    pos.above());
         }
 
         private static int intProperty(BlockState state, String name) {

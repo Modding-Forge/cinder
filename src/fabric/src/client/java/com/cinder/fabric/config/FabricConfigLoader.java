@@ -78,6 +78,8 @@ public final class FabricConfigLoader {
                         + "dirtPath={}, farmland={}, mycelium={}, podzol={}, "
                         + "crimson={}, warped={}] citEnabled={} "
                         + "customGuiEnabled={} customColorsEnabled={} "
+                        + "customSkyEnabled={} "
+                        + "naturalTexturesEnabled={} betterSnowEnabled={} "
                         + "customAnimationsEnabled={} "
                         + "customAnimationMipmapDistance={}",
                 Constants.MOD_NAME, file, cfg.enabled(),
@@ -93,6 +95,8 @@ public final class FabricConfigLoader {
                 cfg.betterGrassCrimsonNylium(),
                 cfg.betterGrassWarpedNylium(), cfg.citEnabled(),
                 cfg.customGuiEnabled(), cfg.customColorsEnabled(),
+                cfg.customSkyEnabled(),
+                cfg.naturalTexturesEnabled(), cfg.betterSnowEnabled(),
                 cfg.customAnimationsEnabled(),
                 cfg.customAnimationMipmapDistance());
             return cfg;
@@ -156,6 +160,12 @@ public final class FabricConfigLoader {
                 Boolean.toString(config.customGuiEnabled()));
         props.setProperty("cinder.custom_colors.enabled",
                 Boolean.toString(config.customColorsEnabled()));
+        props.setProperty("cinder.custom_sky.enabled",
+                Boolean.toString(config.customSkyEnabled()));
+        props.setProperty("cinder.natural_textures.enabled",
+                Boolean.toString(config.naturalTexturesEnabled()));
+        props.setProperty("cinder.better_snow.enabled",
+                Boolean.toString(config.betterSnowEnabled()));
         props.setProperty("cinder.custom_animations.enabled",
                 Boolean.toString(config.customAnimationsEnabled()));
         props.setProperty("cinder.custom_animations.mipmap_distance",

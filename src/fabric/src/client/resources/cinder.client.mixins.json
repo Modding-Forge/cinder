@@ -24,6 +24,7 @@
     "MultiPlayerGameModeCustomGuiMixin",
     "SodiumBlockRendererCtmMixin",
     "SodiumLevelColorCacheCustomColorsMixin",
+    "SkyRendererCustomSkyMixin",
     "SpriteSourcesAccessor",
     "SpriteSourcesBootstrapMixin",
     "TextColorCustomColorsMixin",

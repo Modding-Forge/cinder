@@ -4,6 +4,8 @@ import com.cinder.client.sodium.CtmSodiumQuadPlan;
 import com.cinder.client.sodium.CtmSodiumQuadProcessor;
 import com.cinder.client.sodium.CinderSodiumEmissive;
 import com.cinder.client.sodium.CinderSodiumBetterGrass;
+import com.cinder.client.sodium.CinderSodiumBetterSnow;
+import com.cinder.client.sodium.CinderSodiumNaturalTextures;
 import com.cinder.config.CinderConfig;
 import com.cinder.config.CinderConfigHolder;
 import com.cinder.fabric.animation.CustomAnimationRuntime;
@@ -12,10 +14,15 @@ import net.caffeinemc.mods.sodium.client.render.model.AbstractBlockRenderContext
 import net.caffeinemc.mods.sodium.client.render.model.EncodingFormat;
 import net.caffeinemc.mods.sodium.client.render.model.MutableQuadViewImpl;
 import net.caffeinemc.mods.sodium.client.render.texture.SpriteFinderCache;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.block.dispatch.BlockStateModel;
 import net.minecraft.client.renderer.chunk.ChunkSectionLayer;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.util.TriState;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.state.BlockState;
 import org.jspecify.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -54,11 +61,21 @@ public abstract class SodiumBlockRendererCtmMixin
     @Shadow
     protected abstract void processQuad(MutableQuadViewImpl quad);
 
+    @Shadow
+    public abstract void renderModel(BlockStateModel model, BlockState state,
+                                     BlockPos pos, BlockPos origin);
+
     @Unique
     private @Nullable CtmSodiumQuadProcessor cinder$processor;
 
     @Unique
     private @Nullable CinderSodiumBetterGrass cinder$betterGrass;
+
+    @Unique
+    private @Nullable CinderSodiumBetterSnow cinder$betterSnow;
+
+    @Unique
+    private @Nullable CinderSodiumNaturalTextures cinder$naturalTextures;
 
     @Unique
     private @Nullable CinderSodiumEmissive cinder$emissive;
@@ -82,9 +99,11 @@ public abstract class SodiumBlockRendererCtmMixin
     private void cinder$prepareCtmQuad(MutableQuadViewImpl quad,
                                        CallbackInfo ci) {
         if (cinder$emittingOverlay) {
+            cinder$naturalTextures().apply(quad, state, pos);
             return;
         }
         CustomAnimationRuntime.markTerrainSprite(cinder$sourceSprite(quad));
+        cinder$betterGrass().applySnowSideRemap(quad, level, state, pos);
         cinder$betterGrass().apply(quad, level, state, pos);
         cinder$hasOverlayPlan = cinder$processor().prepare(
                 quad, level, state, pos, cinder$overlaySource(),
@@ -99,6 +118,7 @@ public abstract class SodiumBlockRendererCtmMixin
             return;
         }
         if (!plan.hasReplacements()) {
+            cinder$naturalTextures().apply(quad, state, pos);
             return;
         }
         cinder$hasOverlayPlan = false;
@@ -171,6 +191,32 @@ public abstract class SodiumBlockRendererCtmMixin
         }
     }
 
+    @Inject(method = "renderModel", at = @At("TAIL"))
+    private void cinder$emitBetterSnowLayer(BlockStateModel model,
+                                            BlockState state,
+                                            BlockPos pos,
+                                            BlockPos origin,
+                                            CallbackInfo ci) {
+        if (cinder$emittingOverlay) {
+            return;
+        }
+        cinder$emittingOverlay = true;
+        try {
+            if (!cinder$betterSnow().shouldRenderSnowLayer(level, state,
+                    pos)) {
+                return;
+            }
+            BlockState snowState = Blocks.SNOW.defaultBlockState();
+            BlockStateModel snowModel = Minecraft.getInstance()
+                    .getModelManager()
+                    .getBlockStateModelSet()
+                    .get(snowState);
+            renderModel(snowModel, snowState, pos, origin);
+        } finally {
+            cinder$emittingOverlay = false;
+        }
+    }
+
     @Unique
     private void cinder$emitOverlayPlan(CtmSodiumQuadPlan plan) {
         MutableQuadViewImpl overlaySource = cinder$overlaySource();
@@ -233,6 +279,26 @@ public abstract class SodiumBlockRendererCtmMixin
             cinder$betterGrass = betterGrass;
         }
         return betterGrass;
+    }
+
+    @Unique
+    private CinderSodiumBetterSnow cinder$betterSnow() {
+        CinderSodiumBetterSnow betterSnow = cinder$betterSnow;
+        if (betterSnow == null) {
+            betterSnow = new CinderSodiumBetterSnow();
+            cinder$betterSnow = betterSnow;
+        }
+        return betterSnow;
+    }
+
+    @Unique
+    private CinderSodiumNaturalTextures cinder$naturalTextures() {
+        CinderSodiumNaturalTextures naturalTextures = cinder$naturalTextures;
+        if (naturalTextures == null) {
+            naturalTextures = new CinderSodiumNaturalTextures();
+            cinder$naturalTextures = naturalTextures;
+        }
+        return naturalTextures;
     }
 
     @Unique

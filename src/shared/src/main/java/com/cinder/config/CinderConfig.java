@@ -44,6 +44,9 @@ public record CinderConfig(
         boolean citEnabled,
         boolean customGuiEnabled,
         boolean customColorsEnabled,
+        boolean customSkyEnabled,
+        boolean naturalTexturesEnabled,
+        boolean betterSnowEnabled,
         boolean customAnimationsEnabled,
         int customAnimationMipmapDistance) {
 
@@ -76,6 +79,10 @@ public record CinderConfig(
         Objects.requireNonNull(citEnabled, "citEnabled");
         Objects.requireNonNull(customGuiEnabled, "customGuiEnabled");
         Objects.requireNonNull(customColorsEnabled, "customColorsEnabled");
+        Objects.requireNonNull(customSkyEnabled, "customSkyEnabled");
+        Objects.requireNonNull(naturalTexturesEnabled,
+                "naturalTexturesEnabled");
+        Objects.requireNonNull(betterSnowEnabled, "betterSnowEnabled");
         Objects.requireNonNull(customAnimationsEnabled,
                 "customAnimationsEnabled");
         if (customAnimationMipmapDistance < 0
@@ -106,6 +113,9 @@ public record CinderConfig(
                 CinderConfigDefaults.CIT_ENABLED,
                 CinderConfigDefaults.CUSTOM_GUI_ENABLED,
                 CinderConfigDefaults.CUSTOM_COLORS_ENABLED,
+                CinderConfigDefaults.CUSTOM_SKY_ENABLED,
+                CinderConfigDefaults.NATURAL_TEXTURES_ENABLED,
+                CinderConfigDefaults.BETTER_SNOW_ENABLED,
                 CinderConfigDefaults.CUSTOM_ANIMATIONS_ENABLED,
                 CinderConfigDefaults.CUSTOM_ANIMATION_MIPMAP_DISTANCE);
     }
@@ -136,6 +146,9 @@ public record CinderConfig(
                 CinderConfigDefaults.CIT_ENABLED,
                 CinderConfigDefaults.CUSTOM_GUI_ENABLED,
                 CinderConfigDefaults.CUSTOM_COLORS_ENABLED,
+                CinderConfigDefaults.CUSTOM_SKY_ENABLED,
+                CinderConfigDefaults.NATURAL_TEXTURES_ENABLED,
+                CinderConfigDefaults.BETTER_SNOW_ENABLED,
                 CinderConfigDefaults.CUSTOM_ANIMATIONS_ENABLED,
                 CinderConfigDefaults.CUSTOM_ANIMATION_MIPMAP_DISTANCE);
     }
@@ -165,6 +178,9 @@ public record CinderConfig(
                 CinderConfigDefaults.CIT_ENABLED,
                 CinderConfigDefaults.CUSTOM_GUI_ENABLED,
                 CinderConfigDefaults.CUSTOM_COLORS_ENABLED,
+                CinderConfigDefaults.CUSTOM_SKY_ENABLED,
+                CinderConfigDefaults.NATURAL_TEXTURES_ENABLED,
+                CinderConfigDefaults.BETTER_SNOW_ENABLED,
                 CinderConfigDefaults.CUSTOM_ANIMATIONS_ENABLED,
                 CinderConfigDefaults.CUSTOM_ANIMATION_MIPMAP_DISTANCE);
     }
@@ -195,8 +211,80 @@ public record CinderConfig(
                 CinderConfigDefaults.CIT_ENABLED,
                 CinderConfigDefaults.CUSTOM_GUI_ENABLED,
                 CinderConfigDefaults.CUSTOM_COLORS_ENABLED,
+                CinderConfigDefaults.CUSTOM_SKY_ENABLED,
+                CinderConfigDefaults.NATURAL_TEXTURES_ENABLED,
+                CinderConfigDefaults.BETTER_SNOW_ENABLED,
                 CinderConfigDefaults.CUSTOM_ANIMATIONS_ENABLED,
                 CinderConfigDefaults.CUSTOM_ANIMATION_MIPMAP_DISTANCE);
+    }
+
+    public CinderConfig(boolean enabled,
+                        boolean safeMode,
+                        boolean verifyMode,
+                        boolean ctmEnabled,
+                        boolean ctmDebugLogging,
+                        boolean duplicateTranslucentBackfaces,
+                        BetterGrassMode betterGrassMode,
+                        boolean betterGrassIgnoreResourcePack,
+                        boolean betterGrassGrassBlock,
+                        boolean betterGrassSnowyGrassBlock,
+                        boolean betterGrassDirtPath,
+                        boolean betterGrassFarmland,
+                        boolean betterGrassMycelium,
+                        boolean betterGrassPodzol,
+                        boolean betterGrassCrimsonNylium,
+                        boolean betterGrassWarpedNylium,
+                        boolean citEnabled,
+                        boolean customGuiEnabled,
+                        boolean customColorsEnabled,
+                        boolean customAnimationsEnabled,
+                        int customAnimationMipmapDistance) {
+        this(enabled, safeMode, verifyMode, ctmEnabled, ctmDebugLogging,
+                duplicateTranslucentBackfaces, betterGrassMode,
+                betterGrassIgnoreResourcePack, betterGrassGrassBlock,
+                betterGrassSnowyGrassBlock, betterGrassDirtPath,
+                betterGrassFarmland, betterGrassMycelium, betterGrassPodzol,
+                betterGrassCrimsonNylium, betterGrassWarpedNylium,
+                citEnabled, customGuiEnabled, customColorsEnabled,
+                CinderConfigDefaults.CUSTOM_SKY_ENABLED,
+                CinderConfigDefaults.NATURAL_TEXTURES_ENABLED,
+                CinderConfigDefaults.BETTER_SNOW_ENABLED,
+                customAnimationsEnabled, customAnimationMipmapDistance);
+    }
+
+    public CinderConfig(boolean enabled,
+                        boolean safeMode,
+                        boolean verifyMode,
+                        boolean ctmEnabled,
+                        boolean ctmDebugLogging,
+                        boolean duplicateTranslucentBackfaces,
+                        BetterGrassMode betterGrassMode,
+                        boolean betterGrassIgnoreResourcePack,
+                        boolean betterGrassGrassBlock,
+                        boolean betterGrassSnowyGrassBlock,
+                        boolean betterGrassDirtPath,
+                        boolean betterGrassFarmland,
+                        boolean betterGrassMycelium,
+                        boolean betterGrassPodzol,
+                        boolean betterGrassCrimsonNylium,
+                        boolean betterGrassWarpedNylium,
+                        boolean citEnabled,
+                        boolean customGuiEnabled,
+                        boolean customColorsEnabled,
+                        boolean customSkyEnabled,
+                        boolean customAnimationsEnabled,
+                        int customAnimationMipmapDistance) {
+        this(enabled, safeMode, verifyMode, ctmEnabled, ctmDebugLogging,
+                duplicateTranslucentBackfaces, betterGrassMode,
+                betterGrassIgnoreResourcePack, betterGrassGrassBlock,
+                betterGrassSnowyGrassBlock, betterGrassDirtPath,
+                betterGrassFarmland, betterGrassMycelium, betterGrassPodzol,
+                betterGrassCrimsonNylium, betterGrassWarpedNylium,
+                citEnabled, customGuiEnabled, customColorsEnabled,
+                customSkyEnabled,
+                CinderConfigDefaults.NATURAL_TEXTURES_ENABLED,
+                CinderConfigDefaults.BETTER_SNOW_ENABLED,
+                customAnimationsEnabled, customAnimationMipmapDistance);
     }
 
     /**
@@ -250,6 +338,27 @@ public record CinderConfig(
      */
     public boolean customColorsActive() {
         return enabled && customColorsEnabled;
+    }
+
+    /**
+     * Returns {@code true} when Custom Sky layers should render.
+     */
+    public boolean customSkyActive() {
+        return enabled && customSkyEnabled;
+    }
+
+    /**
+     * Returns {@code true} when Natural Textures should alter terrain quads.
+     */
+    public boolean naturalTexturesActive() {
+        return enabled && naturalTexturesEnabled;
+    }
+
+    /**
+     * Returns {@code true} when Better Snow layer emission should run.
+     */
+    public boolean betterSnowActive() {
+        return enabled && betterSnowEnabled;
     }
 
     /**
