@@ -95,8 +95,78 @@ public final class CinderConfigDefaults {
     /** Custom texture animations feature toggle. */
     public static final boolean CUSTOM_ANIMATIONS_ENABLED = true;
 
+    /** Random Entity Textures feature toggle. */
+    public static final boolean RANDOM_ENTITIES_ENABLED = true;
+
+    /** Custom Entity Models feature toggle. */
+    public static final boolean CUSTOM_ENTITY_MODELS_ENABLED = true;
+
     /** Highest custom-animation mipmap level to update. */
     public static final int CUSTOM_ANIMATION_MIPMAP_DISTANCE = 4;
+
+    /** Vanilla sky detail toggles. */
+    public static final boolean DETAILS_SKY_ENABLED = true;
+    public static final boolean DETAILS_SUN_ENABLED = true;
+    public static final boolean DETAILS_MOON_ENABLED = true;
+    public static final boolean DETAILS_STARS_ENABLED = true;
+    public static final boolean DETAILS_CLOUDS_ENABLED = true;
+    public static final int DETAILS_CLOUD_HEIGHT = 192;
+    public static final boolean DETAILS_RAIN_SNOW_ENABLED = true;
+    public static final boolean DETAILS_VIGNETTE_ENABLED = true;
+
+    /** Vanilla atlas animation toggles. */
+    public static final boolean ANIMATIONS_ENABLED = true;
+    public static final boolean ANIMATION_WATER = true;
+    public static final boolean ANIMATION_LAVA = true;
+    public static final boolean ANIMATION_FIRE = true;
+    public static final boolean ANIMATION_PORTAL = true;
+    public static final boolean ANIMATION_SCULK_SENSOR = true;
+    public static final boolean ANIMATION_BLOCKS = true;
+
+    /** Coarse visual clutter toggles. */
+    public static final boolean PARTICLES_ENABLED = true;
+    public static final boolean PARTICLE_RAIN_SPLASH = true;
+    public static final boolean PARTICLE_BLOCK_BREAK = true;
+    public static final boolean PARTICLE_BLOCK_BREAKING = true;
+    public static final boolean PARTICLE_EXPLOSION = true;
+    public static final boolean PARTICLE_WATER = true;
+    public static final boolean PARTICLE_SMOKE = true;
+    public static final boolean PARTICLE_POTION = true;
+    public static final boolean PARTICLE_PORTAL = true;
+    public static final boolean PARTICLE_FLAME = true;
+    public static final boolean PARTICLE_REDSTONE = true;
+    public static final boolean PARTICLE_DRIPPING = true;
+    public static final boolean PARTICLE_FIREWORK = true;
+    public static final boolean FOG_ENABLED = true;
+    public static final boolean FOG_WATER = true;
+    public static final boolean FOG_LAVA = true;
+    public static final boolean FOG_POWDER_SNOW = true;
+    public static final boolean FOG_AIR = true;
+    public static final boolean ENTITY_SHADOWS_ENABLED = true;
+    public static final boolean ENTITY_NAME_TAGS_ENABLED = true;
+    public static final boolean ENTITY_PLAYER_NAME_TAGS = true;
+    public static final boolean ENTITY_ITEM_FRAMES = true;
+    public static final boolean ENTITY_PAINTINGS = true;
+    public static final boolean ENTITY_PISTON_ANIMATIONS = true;
+    public static final boolean ENTITY_BEACON_BEAM = true;
+    public static final boolean ENTITY_LIMIT_BEACON_BEAM_HEIGHT = false;
+    public static final boolean ENTITY_ENCHANTING_TABLE_BOOK = true;
+    public static final boolean SHOW_FPS = false;
+    public static final boolean SHOW_FPS_EXTENDED = false;
+    public static final boolean SHOW_COORDS = false;
+    public static final OverlayCorner OVERLAY_CORNER = OverlayCorner.TOP_LEFT;
+    public static final TextContrast TEXT_CONTRAST = TextContrast.SHADOW;
+    public static final boolean STEADY_DEBUG_HUD = false;
+    public static final int STEADY_DEBUG_HUD_REFRESH_INTERVAL = 10;
+    public static final boolean TOAST_ADVANCEMENT = true;
+    public static final boolean TOAST_RECIPE = true;
+    public static final boolean TOAST_SYSTEM = true;
+    public static final boolean TOAST_TUTORIAL = true;
+    public static final boolean INSTANT_SNEAK = false;
+    public static final FullscreenMode FULLSCREEN_MODE =
+            FullscreenMode.WINDOWED;
+    public static final boolean BIOME_COLORS_ENABLED = true;
+    public static final boolean SKY_COLORS_ENABLED = true;
 
     private CinderConfigDefaults() {
     }
@@ -126,6 +196,65 @@ public final class CinderConfigDefaults {
                 NATURAL_TEXTURES_ENABLED,
                 BETTER_SNOW_ENABLED,
                 CUSTOM_ANIMATIONS_ENABLED,
-                CUSTOM_ANIMATION_MIPMAP_DISTANCE);
+                RANDOM_ENTITIES_ENABLED,
+                CUSTOM_ENTITY_MODELS_ENABLED,
+                CUSTOM_ANIMATION_MIPMAP_DISTANCE,
+                DETAILS_SKY_ENABLED,
+                DETAILS_SUN_ENABLED,
+                DETAILS_MOON_ENABLED,
+                DETAILS_STARS_ENABLED,
+                DETAILS_CLOUDS_ENABLED,
+                DETAILS_CLOUD_HEIGHT,
+                DETAILS_RAIN_SNOW_ENABLED,
+                DETAILS_VIGNETTE_ENABLED,
+                ANIMATIONS_ENABLED,
+                ANIMATION_WATER,
+                ANIMATION_LAVA,
+                ANIMATION_FIRE,
+                ANIMATION_PORTAL,
+                ANIMATION_SCULK_SENSOR,
+                ANIMATION_BLOCKS,
+                PARTICLES_ENABLED,
+                PARTICLE_RAIN_SPLASH,
+                PARTICLE_BLOCK_BREAK,
+                PARTICLE_BLOCK_BREAKING,
+                PARTICLE_EXPLOSION,
+                PARTICLE_WATER,
+                PARTICLE_SMOKE,
+                PARTICLE_POTION,
+                PARTICLE_PORTAL,
+                PARTICLE_FLAME,
+                PARTICLE_REDSTONE,
+                PARTICLE_DRIPPING,
+                PARTICLE_FIREWORK,
+                FOG_ENABLED,
+                FOG_WATER,
+                FOG_LAVA,
+                FOG_POWDER_SNOW,
+                FOG_AIR,
+                ENTITY_SHADOWS_ENABLED,
+                ENTITY_NAME_TAGS_ENABLED,
+                ENTITY_PLAYER_NAME_TAGS,
+                ENTITY_ITEM_FRAMES,
+                ENTITY_PAINTINGS,
+                ENTITY_PISTON_ANIMATIONS,
+                ENTITY_BEACON_BEAM,
+                ENTITY_LIMIT_BEACON_BEAM_HEIGHT,
+                ENTITY_ENCHANTING_TABLE_BOOK,
+                SHOW_FPS,
+                SHOW_FPS_EXTENDED,
+                SHOW_COORDS,
+                OVERLAY_CORNER,
+                TEXT_CONTRAST,
+                STEADY_DEBUG_HUD,
+                STEADY_DEBUG_HUD_REFRESH_INTERVAL,
+                TOAST_ADVANCEMENT,
+                TOAST_RECIPE,
+                TOAST_SYSTEM,
+                TOAST_TUTORIAL,
+                INSTANT_SNEAK,
+                FULLSCREEN_MODE,
+                BIOME_COLORS_ENABLED,
+                SKY_COLORS_ENABLED);
     }
 }

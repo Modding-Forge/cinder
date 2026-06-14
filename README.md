@@ -24,6 +24,7 @@ The goal is not to bundle features for the sake of size. The goal is a clean rei
 - Custom Sky layer support for `optifine/sky/world*/sky*.properties`, including numbered layer scanning, fades, weather/biome/height conditions, transitions, rotation, and common blend modes.
 - Natural Textures support for `optifine/natural.properties` and built-in Vanilla-style defaults on Sodium terrain quads.
 - Better Snow support with OptiFine-style snow layer coverage for supported non-solid blocks, plus Cinder's Better-Grass-owned snow side remap for solid blocks with snow above.
+- Random Entity Texture support for OptiFine/ETF-style living-entity texture variants, including living-entity base texture replacement and matching layer/overlay variant synchronization for the first supported render layers.
 - Shared condition engine for CIT, Custom GUI, and future condition-based features.
 - Fabric client integration through Sodium's terrain quad path and Minecraft's item/GUI rendering paths where those features live.
 
@@ -51,10 +52,14 @@ Implemented or visible today:
   - Exact parity for uncommon blend math, `sun.properties`, `moon_phases.properties`, and broader pack smoke coverage is still planned.
 - Natural Textures and Better Snow are implemented on the Sodium terrain path and configurable from the Sodium menu.
   - Their dedicated in-game smoke matrix is still ongoing.
+- Random Entities are implemented and in-game verified for the first visible K1 path: living-entity base textures, immutable reload snapshots, entity render-state context capture, numbered variant discovery, layer/overlay synchronization for the first living-entity render layers, and ETF fail-safe detection. PureBDcraft Random Entities and a synthetic layer-sync smoke pack work on this path.
+  - Paintings, skulls, block-entity textures, full `nbt.*` matching, and broader real-pack smoke coverage are still planned.
+- Custom Entity Models have config/menu wiring, a shared parser/data-model foundation for simple `.jem/.jpm` structures, Fabric reload/runtime snapshots, and a narrow synthetic Creeper smoke hook that proves the CEM runtime can affect an entity renderer in-game.
+  - Real Minecraft model-part conversion, animation expressions, attachments, Fresh Animations/EMF parity, and broad CEM renderer integration are still planned.
 
 Not implemented yet:
 
-- Random Entities.
+- Broad Custom Entity Models rendering and Fresh Animations parity.
 - NeoForge support.
 
 See `plan/roadmap.md` for the detailed phase status. The README is intentionally conservative: a feature being implemented does not mean it has complete OptiFine parity.

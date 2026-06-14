@@ -52,6 +52,8 @@ public final class CinderFabricClient implements ClientModInitializer {
         com.cinder.fabric.customcolors.CustomColorsReloadListener.register();
         com.cinder.fabric.customsky.CustomSkyReloadListener.register();
         com.cinder.fabric.natural.NaturalTexturesReloadListener.register();
+        com.cinder.fabric.randomentity.RandomEntityReloadListener.register();
+        com.cinder.fabric.cem.CemReloadListener.register();
         com.cinder.client.command.CinderClientCommands.register();
 
         // The old CPU quad-swap CTM path is intentionally not

@@ -96,11 +96,19 @@ public final class CustomColorsRuntime {
         return true;
     }
 
+    private static boolean biomeActive() {
+        return active() && CinderConfigHolder.get().biomeColorsEnabled();
+    }
+
+    private static boolean skyActive() {
+        return active() && CinderConfigHolder.get().skyColorsEnabled();
+    }
+
     public static int blockPaletteColor(BlockState state,
                                         BlockAndTintGetter level,
                                         BlockPos pos,
                                         int fallback) {
-        if (!active() || state == null) {
+        if (!biomeActive() || state == null) {
             return fallback;
         }
         CustomColorsClientSnapshot.RuntimeRule[] rules =
@@ -160,7 +168,7 @@ public final class CustomColorsRuntime {
                                            ClientLevel level,
                                            BlockPos pos,
                                            int fallback) {
-        if (!active() || resolver == null || level == null || pos == null) {
+        if (!biomeActive() || resolver == null || level == null || pos == null) {
             return fallback;
         }
         ColormapImage image = specialForResolver(resolver);
@@ -201,7 +209,7 @@ public final class CustomColorsRuntime {
     public static int sodiumBiomeColor(ColorResolver resolver,
                                        Biome biome,
                                        int fallback) {
-        if (!active() || resolver == null || biome == null) {
+        if (!biomeActive() || resolver == null || biome == null) {
             return fallback;
         }
         ColormapImage image = specialForResolver(resolver);
@@ -237,7 +245,7 @@ public final class CustomColorsRuntime {
     }
 
     public static int overrideColor(String key, int fallback) {
-        if (!active()) {
+        if (!biomeActive()) {
             return fallback;
         }
         return SNAPSHOT.get().overrides().colorOr(key, fallback);
@@ -295,7 +303,7 @@ public final class CustomColorsRuntime {
     public static int itemGrassColor(float temperature,
                                      float downfall,
                                      int fallback) {
-        if (!active()) {
+        if (!skyActive()) {
             return fallback;
         }
         ColormapImage image = SNAPSHOT.get().special("grass");

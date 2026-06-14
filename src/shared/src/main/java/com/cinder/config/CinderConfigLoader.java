@@ -145,10 +145,189 @@ public final class CinderConfigLoader {
         boolean customAnimationsEnabled = readBool(props,
                 "cinder.custom_animations.enabled",
                 CinderConfigDefaults.CUSTOM_ANIMATIONS_ENABLED);
+        boolean randomEntitiesEnabled = readBool(props,
+                "cinder.random_entities.enabled",
+                CinderConfigDefaults.RANDOM_ENTITIES_ENABLED);
+        boolean customEntityModelsEnabled = readBool(props,
+                "cinder.custom_entity_models.enabled",
+                CinderConfigDefaults.CUSTOM_ENTITY_MODELS_ENABLED);
         int customAnimationMipmapDistance = readInt(props,
                 "cinder.custom_animations.mipmap_distance",
                 CinderConfigDefaults.CUSTOM_ANIMATION_MIPMAP_DISTANCE,
                 0, 4);
+        boolean detailsSkyEnabled = readBool(props,
+                "cinder.details.sky.enabled",
+                CinderConfigDefaults.DETAILS_SKY_ENABLED);
+        boolean detailsSunEnabled = readBool(props,
+                "cinder.details.sun.enabled",
+                CinderConfigDefaults.DETAILS_SUN_ENABLED);
+        boolean detailsMoonEnabled = readBool(props,
+                "cinder.details.moon.enabled",
+                CinderConfigDefaults.DETAILS_MOON_ENABLED);
+        boolean detailsStarsEnabled = readBool(props,
+                "cinder.details.stars.enabled",
+                CinderConfigDefaults.DETAILS_STARS_ENABLED);
+        boolean detailsCloudsEnabled = readBool(props,
+                "cinder.details.clouds.enabled",
+                CinderConfigDefaults.DETAILS_CLOUDS_ENABLED);
+        int detailsCloudHeight = readInt(props,
+                "cinder.details.cloud_height",
+                CinderConfigDefaults.DETAILS_CLOUD_HEIGHT,
+                0, 512);
+        boolean detailsRainSnowEnabled = readBool(props,
+                "cinder.details.rain_snow.enabled",
+                CinderConfigDefaults.DETAILS_RAIN_SNOW_ENABLED);
+        boolean detailsVignetteEnabled = readBool(props,
+                "cinder.details.vignette.enabled",
+                CinderConfigDefaults.DETAILS_VIGNETTE_ENABLED);
+        boolean animationsEnabled = readBool(props,
+                "cinder.animations.enabled",
+                CinderConfigDefaults.ANIMATIONS_ENABLED);
+        boolean animationWater = readBool(props,
+                "cinder.animations.water",
+                CinderConfigDefaults.ANIMATION_WATER);
+        boolean animationLava = readBool(props,
+                "cinder.animations.lava",
+                CinderConfigDefaults.ANIMATION_LAVA);
+        boolean animationFire = readBool(props,
+                "cinder.animations.fire",
+                CinderConfigDefaults.ANIMATION_FIRE);
+        boolean animationPortal = readBool(props,
+                "cinder.animations.portal",
+                CinderConfigDefaults.ANIMATION_PORTAL);
+        boolean animationSculkSensor = readBool(props,
+                "cinder.animations.sculk_sensor",
+                CinderConfigDefaults.ANIMATION_SCULK_SENSOR);
+        boolean animationBlocks = readBool(props,
+                "cinder.animations.blocks",
+                CinderConfigDefaults.ANIMATION_BLOCKS);
+        boolean particlesEnabled = readBool(props,
+                "cinder.particles.enabled",
+                CinderConfigDefaults.PARTICLES_ENABLED);
+        boolean particleRainSplash = readBool(props,
+                "cinder.particles.rain_splash",
+                CinderConfigDefaults.PARTICLE_RAIN_SPLASH);
+        boolean particleBlockBreak = readBool(props,
+                "cinder.particles.block_break",
+                CinderConfigDefaults.PARTICLE_BLOCK_BREAK);
+        boolean particleBlockBreaking = readBool(props,
+                "cinder.particles.block_breaking",
+                CinderConfigDefaults.PARTICLE_BLOCK_BREAKING);
+        boolean particleExplosion = readBool(props,
+                "cinder.particles.explosion",
+                CinderConfigDefaults.PARTICLE_EXPLOSION);
+        boolean particleWater = readBool(props,
+                "cinder.particles.water",
+                CinderConfigDefaults.PARTICLE_WATER);
+        boolean particleSmoke = readBool(props,
+                "cinder.particles.smoke",
+                CinderConfigDefaults.PARTICLE_SMOKE);
+        boolean particlePotion = readBool(props,
+                "cinder.particles.potion",
+                CinderConfigDefaults.PARTICLE_POTION);
+        boolean particlePortal = readBool(props,
+                "cinder.particles.portal",
+                CinderConfigDefaults.PARTICLE_PORTAL);
+        boolean particleFlame = readBool(props,
+                "cinder.particles.flame",
+                CinderConfigDefaults.PARTICLE_FLAME);
+        boolean particleRedstone = readBool(props,
+                "cinder.particles.redstone",
+                CinderConfigDefaults.PARTICLE_REDSTONE);
+        boolean particleDripping = readBool(props,
+                "cinder.particles.dripping",
+                CinderConfigDefaults.PARTICLE_DRIPPING);
+        boolean particleFirework = readBool(props,
+                "cinder.particles.firework",
+                CinderConfigDefaults.PARTICLE_FIREWORK);
+        boolean fogEnabled = readBool(props,
+                "cinder.fog.enabled",
+                CinderConfigDefaults.FOG_ENABLED);
+        boolean fogWater = readBool(props,
+                "cinder.fog.water",
+                CinderConfigDefaults.FOG_WATER);
+        boolean fogLava = readBool(props,
+                "cinder.fog.lava",
+                CinderConfigDefaults.FOG_LAVA);
+        boolean fogPowderSnow = readBool(props,
+                "cinder.fog.powder_snow",
+                CinderConfigDefaults.FOG_POWDER_SNOW);
+        boolean fogAir = readBool(props,
+                "cinder.fog.air",
+                CinderConfigDefaults.FOG_AIR);
+        boolean entityShadowsEnabled = readBool(props,
+                "cinder.entities.shadows.enabled",
+                CinderConfigDefaults.ENTITY_SHADOWS_ENABLED);
+        boolean entityNameTagsEnabled = readBool(props,
+                "cinder.entities.name_tags.enabled",
+                CinderConfigDefaults.ENTITY_NAME_TAGS_ENABLED);
+        boolean entityPlayerNameTags = readBool(props,
+                "cinder.entities.player_name_tags",
+                CinderConfigDefaults.ENTITY_PLAYER_NAME_TAGS);
+        boolean entityItemFrames = readBool(props,
+                "cinder.entities.item_frames",
+                CinderConfigDefaults.ENTITY_ITEM_FRAMES);
+        boolean entityPaintings = readBool(props,
+                "cinder.entities.paintings",
+                CinderConfigDefaults.ENTITY_PAINTINGS);
+        boolean entityPistonAnimations = readBool(props,
+                "cinder.entities.piston_animations",
+                CinderConfigDefaults.ENTITY_PISTON_ANIMATIONS);
+        boolean entityBeaconBeam = readBool(props,
+                "cinder.entities.beacon_beam",
+                CinderConfigDefaults.ENTITY_BEACON_BEAM);
+        boolean entityLimitBeaconBeamHeight = readBool(props,
+                "cinder.entities.limit_beacon_beam_height",
+                CinderConfigDefaults.ENTITY_LIMIT_BEACON_BEAM_HEIGHT);
+        boolean entityEnchantingTableBook = readBool(props,
+                "cinder.entities.enchanting_table_book",
+                CinderConfigDefaults.ENTITY_ENCHANTING_TABLE_BOOK);
+        boolean showFps = readBool(props,
+                "cinder.hud.fps",
+                CinderConfigDefaults.SHOW_FPS);
+        boolean showFpsExtended = readBool(props,
+                "cinder.hud.fps_extended",
+                CinderConfigDefaults.SHOW_FPS_EXTENDED);
+        boolean showCoords = readBool(props,
+                "cinder.hud.coords",
+                CinderConfigDefaults.SHOW_COORDS);
+        OverlayCorner overlayCorner = OverlayCorner.parse(
+                props.get("cinder.hud.corner"),
+                CinderConfigDefaults.OVERLAY_CORNER);
+        TextContrast textContrast = TextContrast.parse(
+                props.get("cinder.hud.text_contrast"),
+                CinderConfigDefaults.TEXT_CONTRAST);
+        boolean steadyDebugHud = readBool(props,
+                "cinder.hud.steady_debug",
+                CinderConfigDefaults.STEADY_DEBUG_HUD);
+        int steadyDebugHudRefreshInterval = readInt(props,
+                "cinder.hud.steady_debug_refresh_interval",
+                CinderConfigDefaults.STEADY_DEBUG_HUD_REFRESH_INTERVAL,
+                1, 200);
+        boolean toastAdvancement = readBool(props,
+                "cinder.toasts.advancement",
+                CinderConfigDefaults.TOAST_ADVANCEMENT);
+        boolean toastRecipe = readBool(props,
+                "cinder.toasts.recipe",
+                CinderConfigDefaults.TOAST_RECIPE);
+        boolean toastSystem = readBool(props,
+                "cinder.toasts.system",
+                CinderConfigDefaults.TOAST_SYSTEM);
+        boolean toastTutorial = readBool(props,
+                "cinder.toasts.tutorial",
+                CinderConfigDefaults.TOAST_TUTORIAL);
+        boolean instantSneak = readBool(props,
+                "cinder.extras.instant_sneak",
+                CinderConfigDefaults.INSTANT_SNEAK);
+        FullscreenMode fullscreenMode = FullscreenMode.parse(
+                props.get("cinder.extras.fullscreen_mode"),
+                CinderConfigDefaults.FULLSCREEN_MODE);
+        boolean biomeColorsEnabled = readBool(props,
+                "cinder.colors.biome.enabled",
+                CinderConfigDefaults.BIOME_COLORS_ENABLED);
+        boolean skyColorsEnabled = readBool(props,
+                "cinder.colors.sky.enabled",
+                CinderConfigDefaults.SKY_COLORS_ENABLED);
         return new CinderConfig(enabled, safeMode, verifyMode, ctmEnabled,
                 ctmDebugLogging, duplicateTranslucentBackfaces,
                 betterGrassMode,
@@ -162,7 +341,66 @@ public final class CinderConfigLoader {
                 naturalTexturesEnabled,
                 betterSnowEnabled,
                 customAnimationsEnabled,
-                customAnimationMipmapDistance);
+                randomEntitiesEnabled,
+                customEntityModelsEnabled,
+                customAnimationMipmapDistance,
+                detailsSkyEnabled,
+                detailsSunEnabled,
+                detailsMoonEnabled,
+                detailsStarsEnabled,
+                detailsCloudsEnabled,
+                detailsCloudHeight,
+                detailsRainSnowEnabled,
+                detailsVignetteEnabled,
+                animationsEnabled,
+                animationWater,
+                animationLava,
+                animationFire,
+                animationPortal,
+                animationSculkSensor,
+                animationBlocks,
+                particlesEnabled,
+                particleRainSplash,
+                particleBlockBreak,
+                particleBlockBreaking,
+                particleExplosion,
+                particleWater,
+                particleSmoke,
+                particlePotion,
+                particlePortal,
+                particleFlame,
+                particleRedstone,
+                particleDripping,
+                particleFirework,
+                fogEnabled,
+                fogWater,
+                fogLava,
+                fogPowderSnow,
+                fogAir,
+                entityShadowsEnabled,
+                entityNameTagsEnabled,
+                entityPlayerNameTags,
+                entityItemFrames,
+                entityPaintings,
+                entityPistonAnimations,
+                entityBeaconBeam,
+                entityLimitBeaconBeamHeight,
+                entityEnchantingTableBook,
+                showFps,
+                showFpsExtended,
+                showCoords,
+                overlayCorner,
+                textContrast,
+                steadyDebugHud,
+                steadyDebugHudRefreshInterval,
+                toastAdvancement,
+                toastRecipe,
+                toastSystem,
+                toastTutorial,
+                instantSneak,
+                fullscreenMode,
+                biomeColorsEnabled,
+                skyColorsEnabled);
     }
 
     private static boolean readBool(PropertiesFile props, String key, boolean fallback) {
