@@ -1,0 +1,179 @@
+// `fabric` is the only module that the Gradle build assembles into a jar
+// during Phase 0. It wires:
+//   - the Fabric Loader (mod entries),
+//   - the Fabric API (optional but recommended),
+//   - the `shared` module (compileOnly so that `shared` is included in the
+//     final jar but its classes are not duplicated in the build output
+//     twice),
+//   - the `Platform` implementation (the only place that may import Fabric
+//     APIs directly).
+//
+// Loom is applied here, NOT at the root, because Loom must be the only
+// plugin on a classpath that has Minecraft available.
+//
+// We load Loom via `buildscript { classpath ... }` rather than the
+// `plugins { id ... }` block, because the Loom artifact on
+// `https://maven.fabricmc.net/` is published as a regular module, not
+// as a Gradle marker plugin. The classpath form resolves
+// `1.16-SNAPSHOT` reliably without a `pluginManagement` override.
+
+buildscript {
+    repositories {
+        maven {
+            name = 'Fabric'
+            url = 'https://maven.fabricmc.net/'
+        }
+        mavenCentral()
+    }
+    dependencies {
+        classpath "net.fabricmc:fabric-loom:${project.loom_version}"
+    }
+}
+
+apply plugin: 'java-library'
+apply plugin: 'maven-publish'
+apply plugin: 'net.fabricmc.fabric-loom'
+
+version = project.mod_version
+group = project.maven_group
+
+base {
+    // Phase 4.7: the jar name is just the mod id; Gradle appends
+    // `-${version}` automatically. The previous
+    // `"${project.mod_id}-${project.mod_version}"` doubled the
+    // version (`cinder-0.1.0-SNAPSHOT-0.1.0-SNAPSHOT.jar`).
+    archivesName = "${project.mod_id}"
+}
+
+loom {
+    splitEnvironmentSourceSets()
+
+    mods {
+        // The MOD_ID in fabric.mod.json is "cinder". Each mod gets its
+        // own (set of) source sets; for a single mod we use the default
+        // "main" and "client" environments.
+        "${project.mod_id}" {
+            sourceSet sourceSets.main
+            sourceSet sourceSets.client
+        }
+    }
+
+    // Phase 6.5: explicit `runConfigs` so `gradlew runClient`
+    // (and the IDE launch config) has a named entry, the
+    // correct main class, and the shared source set on the
+    // classpath. Without this, the task name shows up as
+    // `null` and VS Code's Java debugger cannot attach.
+    runConfigs {
+        // The `client` block configures a runnable Minecraft
+        // client with the mod installed. The `client()`-method
+        // adds all the Fabric-Loom standard launch flags
+        // (asset-index, natives dir, version type, etc.).
+        "client" {
+            client()
+            name "Cinder Dev Client"
+            // Make the IDE aware of the main class so the
+            // debugger can attach without re-resolving.
+            ideConfigGenerated true
+        }
+    }
+}
+
+dependencies {
+    // Shared module: classes end up in the final jar via the
+    // `tasks.withType(Jar).configureEach { from(... output) }` block
+    // below. We list it as a `compileOnly` so that the shared
+    // classes are on the compile classpath but are not consumed
+    // as a separate runtime dependency (they are physically bundled
+    // into the resulting `cinder-*.jar`).
+    // The `shared` module's classes are merged into the
+    // final fabric jar via the `tasks.withType(Jar).configure
+    // Each { from(... output) }` block below; we list it as
+    // `implementation` here so the shared classes are also on
+    // the classpath for the Loom-managed `runClient` task
+    // (which builds a separate classpath and does not honour
+    // the `from(...)` jar merge).
+    implementation project(':src:shared')
+
+    // Minecraft, Loader, Fabric API - versions are in gradle.properties.
+    minecraft           "com.mojang:minecraft:${project.minecraft_version}"
+    implementation     "net.fabricmc:fabric-loader:${project.loader_version}"
+    implementation     "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
+    compileOnly        "net.caffeinemc:sodium-fabric:0.9.0-beta.3+mc26.2r1"
+
+    // SLF4J: the `shared` module re-exports the API; we add a real
+    // logger implementation here so that `LOGGER.info(...)` actually
+    // produces output in dev runs.
+    implementation 'org.slf4j:slf4j-api:2.0.16'
+
+    // Phase 6: MixinExtras gives us @WrapOperation which is the
+    // cleanest way to wrap a BlockQuadOutput lambda at the
+    // tesselateBlock call site. The base mixin framework (from
+    // fabric-loom) is on the classpath already.
+    implementation 'io.github.llamalad7:mixinextras-fabric:0.5.4'
+
+    // No test source set in the `fabric` module: the adapter
+    // classes (`FabricNeighborView`, `CtmReloadListener`) reference
+    // Minecraft types whose <clinit> pulls in
+    // `Blocks -> SoundEvents`, which crashes in a unit-test JVM
+    // context (no sound engine). The shared module's tests cover
+    // the engine logic; the adapter is exercised by the build
+    // compilation and by manual in-game verification in Phase 4.
+}
+
+processResources {
+    // Replace ${...} placeholders in resources, including fabric.mod.json.
+    filesMatching('**/*.json') {
+        expand project: project,
+               mod_id: project.mod_id,
+               mod_name: 'Cinder',
+               mod_version: project.mod_version,
+               minecraft_version: project.minecraft_version,
+               loader_version: project.loader_version,
+               fabric_api_version: project.fabric_api_version
+    }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    // Fabric Loom configures the Minecraft classpath; we still want
+    // the project's `java_release` (see gradle.properties) for our
+    // own code. (Loom itself is loaded against the same JDK that
+    // runs Gradle.)
+    options.release = project.java_release as int
+    options.encoding = 'UTF-8'
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+    // No tests in the fabric module - see comment in the
+    // dependencies block. The configuration here exists only to
+    // make the task discoverable by Gradle's `test` task graph
+    // (so `gradle check` does not error out on a missing task).
+    enabled = false
+}
+
+tasks.withType(Jar).configureEach { jarTask ->
+    from(project(':src:shared').sourceSets.main.output)
+    // Phase 4.6: two flavours of FabricPlatform are
+    // registered via META-INF/services. The main source set's
+    // FabricPlatform covers the dedicated server
+    // (isClient=false). The client source set's
+    // FabricPlatformClient covers the client (isClient=true
+    // via FabricLoader). Loom's `splitEnvironmentSourceSets`
+    // copies both files into the client jar by default; we
+    // want the client set's entry to win. The duplicates
+    // strategy below keeps the *first* file encountered. We
+    // therefore *exclude* the main set's service file from
+    // the jar, leaving only the client set's file (for the
+    // client jar) or nothing (for the server jar; Fabric
+    // throws a clean "no Platform" error in that case, which
+    // is intentional: Phase 4 ships a client-only mod).
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}
+
+repositories {
+    maven {
+        name = 'CaffeineMC'
+        url = 'https://maven.caffeinemc.net/releases'
+    }
+    mavenCentral()
+}

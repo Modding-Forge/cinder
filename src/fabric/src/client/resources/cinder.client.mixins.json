@@ -1,0 +1,23 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "com.cinder.client.mixin",
+  "plugin": "com.cinder.client.mixin.CinderClientMixinPlugin",
+  "compatibilityLevel": "JAVA_25",
+  "client": [
+    "SodiumBlockRendererCtmMixin",
+    "GuiCustomGuiMixin",
+    "GuiGraphicsExtractorCustomGuiMixin",
+    "ItemModelResolverCitMixin",
+    "ItemStackRenderStateAccessor",
+    "MultiPlayerGameModeCustomGuiMixin",
+    "SpriteSourcesAccessor",
+    "SpriteSourcesBootstrapMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  },
+  "overwrites": {
+    "requireAnnotations": true
+  }
+}

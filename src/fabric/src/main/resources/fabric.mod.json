@@ -1,0 +1,36 @@
+{
+  "schemaVersion": 1,
+  "id": "${mod_id}",
+  "version": "${mod_version}",
+  "name": "${mod_name}",
+  "description": "Clean-room OptiFine-style visual compatibility for Minecraft's modern renderer path. Fabric and Sodium first; NeoForge is planned.",
+  "authors": [
+    "The Cinder Contributors"
+  ],
+  "license": "PolyForm-Shield-1.0.0",
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "com.cinder.fabric.CinderFabric"
+    ],
+    "client": [
+      "com.cinder.fabric.client.CinderFabricClient"
+    ],
+    "sodium:config_api_user": [
+      "com.cinder.client.sodium.CinderSodiumConfigEntryPoint"
+    ]
+  },
+  "mixins": [
+    "cinder.mixins.json",
+    {
+      "config": "cinder.client.mixins.json",
+      "environment": "client"
+    }
+  ],
+  "depends": {
+    "fabricloader": ">=${loader_version}",
+    "java": ">=25",
+    "fabric-api": "*",
+    "sodium": "*"
+  }
+}

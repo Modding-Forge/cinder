@@ -1,0 +1,51 @@
+// `common` is a plain `java-library` Gradle project.
+//
+// HARD RULE: nothing in this module is allowed to depend on Fabric, NeoForge,
+// Fabric-API, Minecraft client, Minecraft server, or any other loader-specific
+// class. The verification of that rule is part of the Phase 0 acceptance
+// criteria documented in the project README and repository instructions.
+//
+// Only dependencies that are safe on every loader:
+//   - SLF4J (logging API; the loader modules supply a real backend),
+//   - the standard library,
+//   - other pure-Java dependencies (parsers, IO, etc., added per Phase).
+
+plugins {
+    id 'java-library'
+}
+
+java {
+    // We publish a `cinderCommon` jar that the `fabric/` module (and later the
+    // `neoforge/` module) adds to its classpath. No `jar` override is needed -
+    // Gradle's `java-library` already produces a regular jar with the
+    // `compileClasspath`/`runtimeClasspath` information for downstream
+    // modules.
+    withSourcesJar()
+    withJavadocJar()
+}
+
+dependencies {
+    // SLF4J is the de-facto logging API across Fabric, NeoForge, and Forge.
+    // The actual logger binding is provided by the loader module; here we only
+    // declare the API so that code in `common/` can log.
+    api 'org.slf4j:slf4j-api:2.0.16'
+
+    // Test-only: we want the `common/` module to be unit-testable in pure JVM
+    // context (no Minecraft). JUnit 5 is small and stable.
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.11.3'
+    testRuntimeOnly    'org.junit.platform:junit-platform-launcher:1.11.3'
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+    testLogging {
+        events 'passed', 'failed', 'skipped'
+        showStandardStreams = false
+        exceptionFormat = 'full'
+    }
+}
+
+tasks.withType(Javadoc).configureEach {
+    failOnError = false
+    options.addStringOption('Xdoclint:none', '-quiet')
+}

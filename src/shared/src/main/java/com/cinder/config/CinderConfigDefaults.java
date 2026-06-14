@@ -1,0 +1,97 @@
+package com.cinder.config;
+
+/**
+ * Default values for the {@link CinderConfig}. The defaults
+ * match OptiFine's defaults so that resource packs work out of
+ * the box:
+ * <ul>
+ *   <li>{@code enabled} = true (master switch)</li>
+ *   <li>{@code safe_mode} = false (let features run; we are
+ *       not yet at risk of crashing the renderer)</li>
+ *   <li>{@code verify_mode} = false (debug-only comparison
+ *       off by default; turned on for development builds)</li>
+ *   <li>{@code ctm.enabled} = true (CTM is the primary
+ *       feature in Phase 4)</li>
+ *   <li>{@code ctm.debug_logging} = false (hot-path CTM
+ *       diagnostics are opt-in)</li>
+ *   <li>{@code general.duplicate_translucent_backfaces} = false
+ *       (translucent quads keep Sodium's normal single-sided output
+ *       unless explicitly requested)</li>
+ *   <li>{@code better_grass.mode} = fast (OptiFine-style full grass sides
+ *       out of the box)</li>
+ *   <li>{@code cit.enabled} = true (OptiFine item CIT is active unless a
+ *       compatibility adapter disables it)</li>
+ *   <li>{@code custom_gui.enabled} = true (OptiFine Custom GUI is active
+ *       unless a compatibility adapter disables it)</li>
+ * </ul>
+ *
+ * <p>Performance: a single static field, allocated once.
+ */
+public final class CinderConfigDefaults {
+
+    /** Master switch: turns the whole mod on or off. */
+    public static final boolean ENABLED = true;
+
+    /** Vanilla-fallback on pipeline / shader errors. */
+    public static final boolean SAFE_MODE = false;
+
+    /** OFF/ON comparison in DEBUG. Never on in release. */
+    public static final boolean VERIFY_MODE = false;
+
+    /** CTM feature toggle. */
+    public static final boolean CTM_ENABLED = true;
+
+    /** CTM hot-path diagnostic logging toggle. */
+    public static final boolean CTM_DEBUG_LOGGING = false;
+
+    /** Translucent replacement quads should emit a reversed backface copy. */
+    public static final boolean DUPLICATE_TRANSLUCENT_BACKFACES = false;
+
+    /** Better Grass mode. */
+    public static final BetterGrassMode BETTER_GRASS_MODE =
+            BetterGrassMode.FAST;
+
+    /** Better Grass resource-pack override switch. */
+    public static final boolean BETTER_GRASS_IGNORE_RESOURCE_PACK = false;
+
+    /** Better Grass block family toggles. */
+    public static final boolean BETTER_GRASS_GRASS_BLOCK = true;
+    public static final boolean BETTER_GRASS_SNOWY_GRASS_BLOCK = true;
+    public static final boolean BETTER_GRASS_DIRT_PATH = true;
+    public static final boolean BETTER_GRASS_FARMLAND = true;
+    public static final boolean BETTER_GRASS_MYCELIUM = true;
+    public static final boolean BETTER_GRASS_PODZOL = true;
+    public static final boolean BETTER_GRASS_CRIMSON_NYLIUM = true;
+    public static final boolean BETTER_GRASS_WARPED_NYLIUM = true;
+
+    /** Custom Item Textures feature toggle. */
+    public static final boolean CIT_ENABLED = true;
+
+    /** Custom GUI texture replacement feature toggle. */
+    public static final boolean CUSTOM_GUI_ENABLED = true;
+
+    private CinderConfigDefaults() {
+    }
+
+    /**
+     * Returns the default configuration. Used by
+     * {@link CinderConfigLoader} when the file is missing or
+     * when a key has no explicit value.
+     */
+    public static CinderConfig defaults() {
+        return new CinderConfig(ENABLED, SAFE_MODE, VERIFY_MODE, CTM_ENABLED,
+                CTM_DEBUG_LOGGING, DUPLICATE_TRANSLUCENT_BACKFACES,
+                BETTER_GRASS_MODE,
+                BETTER_GRASS_IGNORE_RESOURCE_PACK,
+                BETTER_GRASS_GRASS_BLOCK,
+                BETTER_GRASS_SNOWY_GRASS_BLOCK,
+                BETTER_GRASS_DIRT_PATH,
+                BETTER_GRASS_FARMLAND,
+                BETTER_GRASS_MYCELIUM,
+                BETTER_GRASS_PODZOL,
+                BETTER_GRASS_CRIMSON_NYLIUM,
+                BETTER_GRASS_WARPED_NYLIUM,
+                CIT_ENABLED,
+                CUSTOM_GUI_ENABLED);
+    }
+}

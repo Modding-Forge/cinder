@@ -1,0 +1,41 @@
+// Root project: aggregator only.
+// No `fabric-loom` plugin applied here - Loom is applied per-submodule in `fabric/build.gradle`,
+// because Loom must only see a single `minecraft` configuration per JVM.
+//
+// `subprojects { ... }` carries shared values (group, version, toolchain) to all subprojects.
+// Each subproject can still override anything it needs.
+
+plugins {
+    id 'base'
+}
+
+allprojects {
+    group = project.maven_group
+    version = project.mod_version
+
+    repositories {
+        // Central is enough for our `common` module; subprojects that need MC add their own
+        // repositories via the Loom plugin in `fabric/build.gradle`.
+        mavenCentral()
+    }
+
+    tasks.withType(JavaCompile).configureEach {
+        // Compile-time and release target pinned via gradle.properties
+        // (`java_release`). See the comment in `gradle.properties` for
+        // why this is 21 today and what to raise it to in the future.
+        sourceCompatibility = JavaVersion.toVersion(project.java_release)
+        targetCompatibility = JavaVersion.toVersion(project.java_release)
+        options.release = project.java_release as int
+    }
+
+    tasks.withType(Jar).configureEach {
+        // Add a tiny machine-readable marker so anyone can tell at a glance which version they have.
+        manifest {
+            attributes([
+                'Cinder-Version'   : project.version,
+                'Cinder-Group'     : project.group,
+                'Built-By'         : 'Gradle'
+            ])
+        }
+    }
+}

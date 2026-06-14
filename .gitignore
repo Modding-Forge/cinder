@@ -1,0 +1,46 @@
+# Gradle
+.gradle/
+build/
+out/
+bin/
+
+# IDE
+.idea/
+*.iml
+*.ipr
+*.iws
+.vscode/
+Cinder.code-workspace
+*.code-workspace
+.classpath
+.project
+.settings/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# CI / misc
+*.log
+hs_err_pid*.log
+replay_pid*.log
+runclient-latest.*.log
+
+# Local archives / templates
+cinder-template-*.zip
+neoforge_*.zip
+
+# Local scratch
+$dir/
+$out/
+$tmp/
+.tmp/
+/META-INF/
+
+# Repo specific
+plan/*
+!plan/roadmap.md
+AGENTS.md
+
+# Fabric
+src/fabric/run/

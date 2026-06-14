@@ -1,0 +1,22 @@
+pluginManagement {
+    repositories {
+        maven {
+            name = 'Fabric'
+            url = 'https://maven.fabricmc.net/'
+        }
+        mavenCentral()
+        gradlePluginPortal()
+    }
+}
+
+// All subprojects live under `src/`. We use the `src:<name>` syntax
+// so that the root directory stays clean (config, gradle wrapper, docs).
+//
+// Phase 0 modules:
+//   - src:shared   - loader-agnostic core (java-library), no Minecraft, no Fabric/NeoForge APIs
+//   - src:fabric   - Fabric loader shim + ModInitializer + ClientModInitializer (the jar we build)
+//   - src:neoforge - STUB ONLY - not included in this build; awaits a NeoForge 26.2 toolchain.
+rootProject.name = 'cinder'
+
+include 'src:shared'
+include 'src:fabric'

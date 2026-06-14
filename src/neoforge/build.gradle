@@ -1,0 +1,18 @@
+// INTENTIONALLY INVALID BUILD FILE.
+//
+// This file exists to make sure that if anyone adds `include 'neoforge'`
+// to the root `settings.gradle` before a real NeoForge toolchain for
+// Minecraft 26.2-pre-4 is available, Gradle will fail loudly with the
+// message below rather than silently pulling in a wrong-version
+// NeoForge dependency.
+//
+// DO NOT `include 'neoforge'` in settings.gradle until the stub has
+// been replaced with a real ModDevGradle-based build file. See
+// `neoforge/README_STUB.md`.
+
+throw new GradleException(
+    "neoforge/ is a stub. A real NeoForge 26.2-pre-4 toolchain is not " +
+    "available yet. Remove this file, set up a real ModDevGradle build, " +
+    "and only then add `include 'neoforge'` to settings.gradle. " +
+    "See neoforge/README_STUB.md for details."
+);
