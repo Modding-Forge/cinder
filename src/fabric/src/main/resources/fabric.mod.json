@@ -27,6 +27,7 @@
       "environment": "client"
     }
   ],
+  "accessWidener": "cinder.accesswidener",
   "depends": {
     "fabricloader": ">=${loader_version}",
     "java": ">=25",

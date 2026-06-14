@@ -43,6 +43,7 @@ public record CinderConfig(
         boolean betterGrassWarpedNylium,
         boolean citEnabled,
         boolean customGuiEnabled,
+        boolean customColorsEnabled,
         boolean customAnimationsEnabled,
         int customAnimationMipmapDistance) {
 
@@ -74,6 +75,7 @@ public record CinderConfig(
                 "betterGrassWarpedNylium");
         Objects.requireNonNull(citEnabled, "citEnabled");
         Objects.requireNonNull(customGuiEnabled, "customGuiEnabled");
+        Objects.requireNonNull(customColorsEnabled, "customColorsEnabled");
         Objects.requireNonNull(customAnimationsEnabled,
                 "customAnimationsEnabled");
         if (customAnimationMipmapDistance < 0
@@ -103,6 +105,7 @@ public record CinderConfig(
                 CinderConfigDefaults.BETTER_GRASS_WARPED_NYLIUM,
                 CinderConfigDefaults.CIT_ENABLED,
                 CinderConfigDefaults.CUSTOM_GUI_ENABLED,
+                CinderConfigDefaults.CUSTOM_COLORS_ENABLED,
                 CinderConfigDefaults.CUSTOM_ANIMATIONS_ENABLED,
                 CinderConfigDefaults.CUSTOM_ANIMATION_MIPMAP_DISTANCE);
     }
@@ -132,6 +135,7 @@ public record CinderConfig(
                 betterGrassWarpedNylium,
                 CinderConfigDefaults.CIT_ENABLED,
                 CinderConfigDefaults.CUSTOM_GUI_ENABLED,
+                CinderConfigDefaults.CUSTOM_COLORS_ENABLED,
                 CinderConfigDefaults.CUSTOM_ANIMATIONS_ENABLED,
                 CinderConfigDefaults.CUSTOM_ANIMATION_MIPMAP_DISTANCE);
     }
@@ -160,6 +164,7 @@ public record CinderConfig(
                 betterGrassWarpedNylium,
                 CinderConfigDefaults.CIT_ENABLED,
                 CinderConfigDefaults.CUSTOM_GUI_ENABLED,
+                CinderConfigDefaults.CUSTOM_COLORS_ENABLED,
                 CinderConfigDefaults.CUSTOM_ANIMATIONS_ENABLED,
                 CinderConfigDefaults.CUSTOM_ANIMATION_MIPMAP_DISTANCE);
     }
@@ -189,6 +194,7 @@ public record CinderConfig(
                 betterGrassWarpedNylium,
                 CinderConfigDefaults.CIT_ENABLED,
                 CinderConfigDefaults.CUSTOM_GUI_ENABLED,
+                CinderConfigDefaults.CUSTOM_COLORS_ENABLED,
                 CinderConfigDefaults.CUSTOM_ANIMATIONS_ENABLED,
                 CinderConfigDefaults.CUSTOM_ANIMATION_MIPMAP_DISTANCE);
     }
@@ -237,6 +243,13 @@ public record CinderConfig(
      */
     public boolean customGuiActive() {
         return enabled && customGuiEnabled;
+    }
+
+    /**
+     * Returns {@code true} when Custom Colors and Colormaps should run.
+     */
+    public boolean customColorsActive() {
+        return enabled && customColorsEnabled;
     }
 
     /**

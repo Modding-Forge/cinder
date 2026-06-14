@@ -27,7 +27,8 @@ import java.util.Set;
 public final class CinderClientMixinPlugin implements IMixinConfigPlugin {
 
     private static final Set<String> SODIUM_TERRAIN_MIXINS = Set.of(
-            "com.cinder.client.mixin.SodiumBlockRendererCtmMixin");
+            "com.cinder.client.mixin.SodiumBlockRendererCtmMixin",
+            "com.cinder.client.mixin.SodiumLevelColorCacheCustomColorsMixin");
 
     private boolean sodiumLoaded;
 

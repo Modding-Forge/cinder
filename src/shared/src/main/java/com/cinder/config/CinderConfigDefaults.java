@@ -23,6 +23,8 @@ package com.cinder.config;
  *       compatibility adapter disables it)</li>
  *   <li>{@code custom_gui.enabled} = true (OptiFine Custom GUI is active
  *       unless a compatibility adapter disables it)</li>
+ *   <li>{@code custom_colors.enabled} = true (OptiFine Custom Colors is
+ *       active unless Colormatic is present)</li>
  *   <li>{@code custom_animations.enabled} = true (OptiFine custom texture
  *       animations are active unless a compatibility adapter disables them)</li>
  * </ul>
@@ -72,6 +74,9 @@ public final class CinderConfigDefaults {
     /** Custom GUI texture replacement feature toggle. */
     public static final boolean CUSTOM_GUI_ENABLED = true;
 
+    /** Custom Colors and Colormaps feature toggle. */
+    public static final boolean CUSTOM_COLORS_ENABLED = true;
+
     /** Custom texture animations feature toggle. */
     public static final boolean CUSTOM_ANIMATIONS_ENABLED = true;
 
@@ -101,6 +106,7 @@ public final class CinderConfigDefaults {
                 BETTER_GRASS_WARPED_NYLIUM,
                 CIT_ENABLED,
                 CUSTOM_GUI_ENABLED,
+                CUSTOM_COLORS_ENABLED,
                 CUSTOM_ANIMATIONS_ENABLED,
                 CUSTOM_ANIMATION_MIPMAP_DISTANCE);
     }

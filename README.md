@@ -20,6 +20,7 @@ The goal is not to bundle features for the sake of size. The goal is a clean rei
 - Custom Item Texture support for `type=item` rules, item texture replacements, model replacements, damage, stack size, enchantment, hand, component, and legacy NBT conditions.
 - Custom GUI texture replacement support for OptiFine-style `optifine/gui/container/**/*.properties` rules, including basic screen matching and shulker `colors=` handling.
 - Custom Animations MVP for OptiFine-style `optifine/anim/**/*.properties` block-atlas texture rules.
+- Custom Colors and Colormaps support for `optifine/color.properties`, `palette.block.*`, `optifine/colormap/**/*.properties`, special colormap PNGs, immutable reload snapshots, hardcoded Vanilla color hooks, and Sodium/Minecraft block tint integration.
 - Shared condition engine for CIT, Custom GUI, and future condition-based features.
 - Fabric client integration through Sodium's terrain quad path and Minecraft's item/GUI rendering paths where those features live.
 
@@ -41,10 +42,11 @@ Implemented or visible today:
   - OptiGUI syntax support, broad Vanilla container testing, and a real fixture suite are still planned.
 - Custom Animations are implemented as an MVP for block-atlas texture targets, with shared parser coverage, reload snapshots, a Fabric tick runtime, partial atlas uploads including configurable mipmap distance, a Sodium terrain usage marker, and GUI item cache invalidation for animated item models.
   - Broad pack parity, non-terrain targets, and full in-game smoke coverage are still planned.
+- Custom Colors are implemented and visible in-game for the current CPU/runtime path. The feature uses immutable reload snapshots, parser coverage for `color.properties` and colormap rules, Sodium terrain tint hooks, Minecraft item/GUI/entity color hooks, Colormatic fail-safe detection, and a Sodium menu toggle. It supports hard-color tables, aliases, block palette rules, standalone block colormap properties, fixed/vanilla/grid sampling data, decoded colormap PNG snapshots, item grass and potion tints, dye/sheep/collar/sign/XP-bar/text-code colors, durability and XP-orb colormap sampling, map material color overrides, and fog/underwater/underlava color hooks.
+  - Full OptiFine parity for every rare hardcoded target, exact biome-column grid semantics, Custom Sky layer rendering, and broader real-pack smoke coverage are still planned. Legacy spawn egg color keys appear obsolete for the current Minecraft item model/tint pipeline and are not treated as a Phase-H completion blocker.
 
 Not implemented yet:
 
-- Custom Colors.
 - Custom Sky.
 - Random Entities.
 - NeoForge support.

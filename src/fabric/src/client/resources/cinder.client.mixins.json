@@ -5,14 +5,29 @@
   "plugin": "com.cinder.client.mixin.CinderClientMixinPlugin",
   "compatibilityLevel": "JAVA_25",
   "client": [
-    "SodiumBlockRendererCtmMixin",
+    "AbstractSignRendererCustomColorsMixin",
+    "CatCollarLayerCustomColorsMixin",
+    "ClientLevelCustomColorsMixin",
+    "ColorLerperTypeCustomColorsMixin",
+    "ContextualBarCustomColorsMixin",
+    "DyeColorCustomColorsMixin",
+    "ExperienceOrbRendererCustomColorsMixin",
+    "FogRendererCustomColorsMixin",
     "GuiCustomGuiMixin",
     "GuiGraphicsExtractorCustomGuiMixin",
+    "ItemCustomColorsMixin",
+    "ItemGrassTintCustomColorsMixin",
     "ItemModelResolverCitMixin",
+    "ItemPotionTintCustomColorsMixin",
     "ItemStackRenderStateAccessor",
+    "MapColorCustomColorsMixin",
     "MultiPlayerGameModeCustomGuiMixin",
+    "SodiumBlockRendererCtmMixin",
+    "SodiumLevelColorCacheCustomColorsMixin",
     "SpriteSourcesAccessor",
-    "SpriteSourcesBootstrapMixin"
+    "SpriteSourcesBootstrapMixin",
+    "TextColorCustomColorsMixin",
+    "WolfCollarLayerCustomColorsMixin"
   ],
   "injectors": {
     "defaultRequire": 1

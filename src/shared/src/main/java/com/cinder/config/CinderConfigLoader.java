@@ -37,6 +37,7 @@ import java.util.Objects;
  * cinder.better_grass.warped_nylium = true
  * cinder.cit.enabled = true
  * cinder.custom_gui.enabled = true
+ * cinder.custom_colors.enabled = true
  * cinder.custom_animations.enabled = true
  * cinder.custom_animations.mipmap_distance = 4
  * </pre>
@@ -125,6 +126,9 @@ public final class CinderConfigLoader {
                 CinderConfigDefaults.CIT_ENABLED);
         boolean customGuiEnabled = readBool(props, "cinder.custom_gui.enabled",
                 CinderConfigDefaults.CUSTOM_GUI_ENABLED);
+        boolean customColorsEnabled = readBool(props,
+                "cinder.custom_colors.enabled",
+                CinderConfigDefaults.CUSTOM_COLORS_ENABLED);
         boolean customAnimationsEnabled = readBool(props,
                 "cinder.custom_animations.enabled",
                 CinderConfigDefaults.CUSTOM_ANIMATIONS_ENABLED);
@@ -140,7 +144,8 @@ public final class CinderConfigLoader {
                 betterGrassDirtPath,
                 betterGrassFarmland, betterGrassMycelium, betterGrassPodzol,
                 betterGrassCrimsonNylium, betterGrassWarpedNylium,
-                citEnabled, customGuiEnabled, customAnimationsEnabled,
+                citEnabled, customGuiEnabled, customColorsEnabled,
+                customAnimationsEnabled,
                 customAnimationMipmapDistance);
     }
 
