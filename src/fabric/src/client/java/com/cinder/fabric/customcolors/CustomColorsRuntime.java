@@ -429,7 +429,8 @@ public final class CustomColorsRuntime {
         if (level instanceof ClientLevel clientLevel) {
             return sampleImageInClientLevel(clientLevel, pos, image);
         }
-        return fallback;
+        return rule.rule().sample(image, 0.5D, 0.5D, 0, pos.getY(),
+                pos.getX(), pos.getZ());
     }
 
     private static ColormapImage specialForResolver(ColorResolver resolver) {

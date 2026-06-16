@@ -2,6 +2,7 @@ package com.cinder.client.sodium;
 
 import com.cinder.ctm.BlockSpec;
 import com.cinder.ctm.CtmRule;
+import com.cinder.fabric.customcolors.CinderCustomBlockTintSource;
 import net.caffeinemc.mods.sodium.api.util.ColorARGB;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.color.block.BlockColors;
@@ -60,6 +61,10 @@ public final class CtmSodiumOverlayTint {
         BlockTintSource tintSource = blockColors.getTintSource(
                 tintState, rule.tintIndex());
         if (tintSource == null) {
+            return -1;
+        }
+        if (tintSource == CinderCustomBlockTintSource.PALETTE
+                && !CinderCustomBlockTintSource.isVanillaTintedState(tintState)) {
             return -1;
         }
         int rgb = tintSource.colorInWorld(tintState, level, pos);
