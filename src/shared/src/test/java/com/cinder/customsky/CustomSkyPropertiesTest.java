@@ -84,6 +84,31 @@ final class CustomSkyPropertiesTest {
     }
 
     @Test
+    void pureBdCraftDayAndNightLayersDoNotOverlapAtNoon() {
+        CustomSkyLayer day = CustomSkyProperties.parseString("""
+                startFadeIn=5\\:00
+                endFadeIn=7\\:00
+                endFadeOut=18\\:00
+                blend=add
+                rotate=false
+                source=./sky1.png
+                """, "minecraft:optifine/sky/world0/sky1.properties");
+        CustomSkyLayer night = CustomSkyProperties.parseString("""
+                startFadeIn=19\\:00
+                endFadeIn=22\\:00
+                endFadeOut=4\\:00
+                blend=add
+                rotate=false
+                source=./sky2.png
+                """, "minecraft:optifine/sky/world0/sky2.properties");
+
+        assertEquals(1.0F, day.fadeAlpha(6000), 0.001F);
+        assertEquals(0.0F, night.fadeAlpha(6000), 0.001F);
+        assertEquals(0.0F, day.fadeAlpha(18000), 0.001F);
+        assertEquals(1.0F, night.fadeAlpha(18000), 0.001F);
+    }
+
+    @Test
     void parsesConditionsAndRotation() {
         CustomSkyLayer layer = CustomSkyProperties.parseString("""
                 blend=screen

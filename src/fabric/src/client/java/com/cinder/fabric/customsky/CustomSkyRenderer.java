@@ -2,6 +2,10 @@ package com.cinder.fabric.customsky;
 
 import com.cinder.customsky.CustomSkyLayer;
 import com.cinder.customsky.CustomSkyRotation;
+import com.mojang.blaze3d.pipeline.BlendFunction;
+import com.mojang.blaze3d.pipeline.ColorTargetState;
+import com.mojang.blaze3d.pipeline.RenderPipeline;
+import com.mojang.blaze3d.platform.BlendFactor;
 import com.mojang.blaze3d.PrimitiveTopology;
 import com.mojang.blaze3d.buffers.GpuBuffer;
 import com.mojang.blaze3d.buffers.GpuBufferSlice;
@@ -14,14 +18,17 @@ import com.mojang.blaze3d.vertex.ByteBufferBuilder;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.MeshData;
 import com.mojang.blaze3d.vertex.PoseStack;
+import net.minecraft.client.renderer.BindGroupLayouts;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.renderer.texture.AbstractTexture;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.ARGB;
 import org.joml.Matrix4f;
 import org.joml.Matrix4fStack;
 import org.joml.Vector4f;
 
+import java.util.EnumMap;
 import java.util.Optional;
 import java.util.OptionalDouble;
 
@@ -35,6 +42,9 @@ public final class CustomSkyRenderer {
 
     private static final float SIZE = 100.0F;
     private static GpuBuffer cubeBuffer;
+    private static final EnumMap<com.cinder.customsky.CustomSkyBlendMode,
+            RenderPipeline> PIPELINES = new EnumMap<>(
+            com.cinder.customsky.CustomSkyBlendMode.class);
 
     private CustomSkyRenderer() {
     }
@@ -61,11 +71,11 @@ public final class CustomSkyRenderer {
             modelViewStack.rotate(angle, rotation.axisX(), rotation.axisY(),
                     rotation.axisZ());
         }
-        float adjustedAlpha = adjustedAlpha(layer.rule(), alpha);
+        Vector4f shaderColor = shaderColor(layer.rule(), alpha);
         GpuBufferSlice dynamicTransforms =
                 RenderSystem.getDynamicUniforms().writeTransform(
                         new Matrix4f(modelViewStack),
-                        new Vector4f(1.0F, 1.0F, 1.0F, adjustedAlpha));
+                        shaderColor);
         modelViewStack.popMatrix();
 
         GpuTextureView colorTexture = target.getColorTextureView();
@@ -75,7 +85,7 @@ public final class CustomSkyRenderer {
                 .createRenderPass(() -> "Cinder custom sky",
                         colorTexture, Optional.empty(),
                         depthTexture, OptionalDouble.empty())) {
-            renderPass.setPipeline(RenderPipelines.END_SKY);
+            renderPass.setPipeline(pipeline(layer.rule()));
             RenderSystem.bindDefaultUniforms(renderPass);
             renderPass.setUniform("DynamicTransforms", dynamicTransforms);
             renderPass.bindTexture("Sampler0", texture.getTextureView(),
@@ -86,11 +96,62 @@ public final class CustomSkyRenderer {
         }
     }
 
-    private static float adjustedAlpha(CustomSkyLayer layer, float alpha) {
+    private static Vector4f shaderColor(CustomSkyLayer layer, float alpha) {
+        float clamped = Math.max(0.0F, Math.min(1.0F, alpha));
         return switch (layer.blend()) {
-            case REPLACE -> Math.min(1.0F, alpha);
-            case MULTIPLY, SCREEN, SUBTRACT, DODGE, BURN, OVERLAY -> alpha;
-            case ADD, ALPHA -> alpha;
+            case SUBTRACT, DODGE, BURN, SCREEN, OVERLAY ->
+                    new Vector4f(clamped, clamped, clamped, 1.0F);
+            case MULTIPLY ->
+                    new Vector4f(clamped, clamped, clamped, clamped);
+            case ADD, ALPHA, REPLACE ->
+                    new Vector4f(1.0F, 1.0F, 1.0F, clamped);
+        };
+    }
+
+    private static RenderPipeline pipeline(CustomSkyLayer layer) {
+        return PIPELINES.computeIfAbsent(layer.blend(),
+                CustomSkyRenderer::createPipeline);
+    }
+
+    private static RenderPipeline createPipeline(
+            com.cinder.customsky.CustomSkyBlendMode blendMode) {
+        RenderPipeline.Builder builder = RenderPipeline.builder()
+                .withBindGroupLayout(BindGroupLayouts.GLOBALS)
+                .withBindGroupLayout(BindGroupLayouts.MATRICES_PROJECTION)
+                .withBindGroupLayout(BindGroupLayouts.SAMPLER0)
+                .withLocation(Identifier.fromNamespaceAndPath("cinder",
+                        "pipeline/custom_sky_" + blendMode.name()
+                                .toLowerCase(java.util.Locale.ROOT)))
+                .withVertexShader("core/position_tex_color")
+                .withFragmentShader("core/position_tex_color")
+                .withVertexBinding(0, DefaultVertexFormat.POSITION_TEX_COLOR)
+                .withPrimitiveTopology(PrimitiveTopology.QUADS);
+        BlendFunction blend = blendFunction(blendMode);
+        if (blend != null) {
+            builder.withColorTargetState(new ColorTargetState(blend));
+        }
+        return builder.build();
+    }
+
+    private static BlendFunction blendFunction(
+            com.cinder.customsky.CustomSkyBlendMode blendMode) {
+        return switch (blendMode) {
+            case ADD -> new BlendFunction(BlendFactor.SRC_ALPHA,
+                    BlendFactor.ONE);
+            case ALPHA -> BlendFunction.TRANSLUCENT;
+            case MULTIPLY -> new BlendFunction(BlendFactor.DST_COLOR,
+                    BlendFactor.ONE_MINUS_SRC_ALPHA);
+            case SCREEN -> new BlendFunction(BlendFactor.ONE,
+                    BlendFactor.ONE_MINUS_SRC_COLOR);
+            case SUBTRACT -> new BlendFunction(
+                    BlendFactor.ONE_MINUS_DST_COLOR, BlendFactor.ZERO);
+            case DODGE -> new BlendFunction(BlendFactor.ONE,
+                    BlendFactor.ONE);
+            case BURN -> new BlendFunction(BlendFactor.ZERO,
+                    BlendFactor.ONE_MINUS_SRC_COLOR);
+            case OVERLAY -> new BlendFunction(BlendFactor.DST_COLOR,
+                    BlendFactor.SRC_COLOR);
+            case REPLACE -> null;
         };
     }
 

@@ -16,7 +16,10 @@ import org.slf4j.LoggerFactory;
 
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
@@ -97,12 +100,24 @@ public final class CustomSkyReloadListener implements
                                 boolean overwrite,
                                 LinkedHashMap<String,
                                         CustomSkyProperties.RuleSource> out) {
-        for (Identifier loc : manager
-                .listResources(root,
+        Map<String, Integer> packPriority = packPriority(manager);
+        Map<String, String> selectedPackByWorld = selectedPackByWorld(
+                manager, root, packPriority);
+        for (Map.Entry<Identifier, List<Resource>> entry : manager
+                .listResourceStacks(root,
                         id -> id.getPath().endsWith(".properties"))
-                .keySet()) {
+                .entrySet()) {
+            Identifier loc = entry.getKey();
             Matcher matcher = SKY_PATH.matcher(loc.getPath());
             if (!matcher.find()) {
+                continue;
+            }
+            String worldKey = loc.getNamespace() + ":" + matcher.group(1)
+                    + "/" + matcher.group(2);
+            String selectedPack = selectedPackByWorld.get(worldKey);
+            Resource resource = topResourceFromPack(entry.getValue(),
+                    selectedPack);
+            if (resource == null) {
                 continue;
             }
             String key = loc.getNamespace() + ":" + matcher.group(2)
@@ -110,11 +125,7 @@ public final class CustomSkyReloadListener implements
             if (!overwrite && out.containsKey(key)) {
                 continue;
             }
-            Optional<Resource> resource = manager.getResource(loc);
-            if (resource.isEmpty()) {
-                continue;
-            }
-            try (var in = resource.get().open();
+            try (var in = resource.open();
                  var reader = new InputStreamReader(
                          in, StandardCharsets.UTF_8)) {
                 out.put(key, new CustomSkyProperties.RuleSource(
@@ -124,6 +135,73 @@ public final class CustomSkyReloadListener implements
                         Constants.MOD_NAME, loc, e.getMessage());
             }
         }
+    }
+
+    private static Map<String, Integer> packPriority(ResourceManager manager) {
+        HashMap<String, Integer> priorities = new HashMap<>();
+        int[] index = {0};
+        manager.listPacks().forEach(pack ->
+                priorities.put(pack.packId(), index[0]++));
+        return priorities;
+    }
+
+    private static Map<String, String> selectedPackByWorld(
+            ResourceManager manager,
+            String root,
+            Map<String, Integer> packPriority) {
+        HashMap<String, String> selected = new HashMap<>();
+        HashMap<String, Integer> selectedPriority = new HashMap<>();
+        for (Map.Entry<Identifier, List<Resource>> entry : manager
+                .listResourceStacks(root,
+                        id -> id.getPath().endsWith(".properties"))
+                .entrySet()) {
+            Matcher matcher = SKY_PATH.matcher(entry.getKey().getPath());
+            if (!matcher.find()) {
+                continue;
+            }
+            Resource top = topResource(entry.getValue(), packPriority);
+            if (top == null) {
+                continue;
+            }
+            String worldKey = entry.getKey().getNamespace() + ":"
+                    + matcher.group(1) + "/" + matcher.group(2);
+            int priority = packPriority.getOrDefault(top.sourcePackId(), -1);
+            Integer old = selectedPriority.get(worldKey);
+            if (old == null || priority > old) {
+                selectedPriority.put(worldKey, priority);
+                selected.put(worldKey, top.sourcePackId());
+            }
+        }
+        return selected;
+    }
+
+    private static Resource topResource(List<Resource> resources,
+                                        Map<String, Integer> packPriority) {
+        Resource best = null;
+        int bestPriority = -1;
+        for (Resource resource : resources) {
+            int priority = packPriority.getOrDefault(
+                    resource.sourcePackId(), -1);
+            if (best == null || priority > bestPriority) {
+                best = resource;
+                bestPriority = priority;
+            }
+        }
+        return best;
+    }
+
+    private static Resource topResourceFromPack(List<Resource> resources,
+                                                String packId) {
+        if (packId == null) {
+            return null;
+        }
+        for (int i = resources.size() - 1; i >= 0; i--) {
+            Resource resource = resources.get(i);
+            if (packId.equals(resource.sourcePackId())) {
+                return resource;
+            }
+        }
+        return null;
     }
 
     private static void publish(CustomSkyClientSnapshot snapshot) {
