@@ -122,6 +122,13 @@ dependencies {
 
 processResources {
     // Replace ${...} placeholders in resources, including fabric.mod.json.
+    inputs.property 'mod_id', project.mod_id
+    inputs.property 'mod_name', 'Argus'
+    inputs.property 'mod_version', project.mod_version
+    inputs.property 'minecraft_version', project.minecraft_version
+    inputs.property 'loader_version', project.loader_version
+    inputs.property 'fabric_api_version', project.fabric_api_version
+
     filesMatching('**/*.json') {
         expand project: project,
                mod_id: project.mod_id,
