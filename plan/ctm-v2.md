@@ -1217,3 +1217,74 @@ Interpretation:
 - Weil Fabric und NeoForge gleichwertige Ziele sind und der reale FPS-Wert
   nicht besser wurde, wurde der Code revertiert. Die Diagnose-Counter bleiben
   als akzeptierte Messhilfe erhalten.
+
+## Rejected: Front-Occlusion First Overlay Connect 2026-06-17
+
+Status: **revertiert.**
+
+Experiment:
+
+- `overlayConnect(...)` pruefte die verdeckte Front-Nachbarposition direkt
+  nach dem Full-Block-Check und vor `connectTiles`/`connectBlocks`.
+- Motivation: Overlay Reject Diagnostics zeigten viele
+  `connect.reject.frontOccluded`-Faelle. Ein frueher Reject sollte teure
+  Tile-/Block-Vergleiche sparen.
+- Unit-Tests und beide Loader-Builds waren gruen.
+
+Benchmark-Reports:
+
+- `build/argus-benchmark/reports/ctm-v3-front-occlusion-first-20260617/20260617-153619-fabric-front-occlusion-first-1.json`
+- `build/argus-benchmark/reports/ctm-v3-front-occlusion-first-20260617/20260617-153729-neoforge-front-occlusion-first-1.json`
+
+Vergleich gegen die Overlay-Reject-Diagnose-Basis:
+
+| Loader | Zustand | Avg FPS | Median FPS | P05 | `sodium.process_quad` total | `sodium.ctm` total | `ctm.resolve` total | `tileMismatch` | `frontOccluded` |
+| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| Fabric | Overlay Reject Diagnostics | 965.538 | 968 | 689 | 25022.568 ms | 15634.502 ms | 7850.218 ms | 10122447 | 760210 |
+| Fabric | Front-Occlusion First | 840.826 | 862 | 605 | 23510.162 ms | 14642.521 ms | 7563.802 ms | 5821388 | 4739210 |
+| NeoForge | Overlay Reject Diagnostics | 956.747 | 938 | 655 | 24995.433 ms | 15685.752 ms | 8028.398 ms | 10274219 | 780885 |
+| NeoForge | Front-Occlusion First | 841.483 | 857 | 611 | 22751.016 ms | 14039.217 ms | 7074.685 ms | 5768054 | 4676805 |
+
+Interpretation:
+
+- Der fruehere Reject reduziert `ctm.resolve` und verschiebt viele
+  `tileMismatch`-Faelle korrekt nach `frontOccluded`.
+- Die realen FPS wurden aber auf beiden Loadern deutlich schlechter.
+- Der zusaetzliche Full-Block-Zugriff vor dem Tile-Vergleich ist offenbar
+  teurer als die gesparte Vergleichsarbeit. Der Code wurde revertiert.
+
+## Rejected: Neighbor Index Direct Block Mask Lookup 2026-06-17
+
+Status: **revertiert.**
+
+Experiment:
+
+- `CtmNeighborRuleIndex` suchte Block-Masks zuerst direkt mit der vom
+  `NeighborView` gelieferten Block-ID und normalisierte nur noch bare IDs.
+- Motivation: der Production-NeighborView liefert praktisch namespaced IDs;
+  dadurch sollte die `minecraft:`-Normalisierung im Overlay-Nachbarpfad
+  meistens entfallen.
+- Unit-Tests und beide Loader-Benchmarks liefen durch.
+
+Benchmark-Reports:
+
+- `build/argus-benchmark/reports/ctm-v3-neighbor-direct-block-mask-20260617/20260617-154155-fabric-neighbor-direct-block-mask-1.json`
+- `build/argus-benchmark/reports/ctm-v3-neighbor-direct-block-mask-20260617/20260617-154308-neoforge-neighbor-direct-block-mask-1.json`
+
+Vergleich gegen die Overlay-Reject-Diagnose-Basis:
+
+| Loader | Zustand | Avg FPS | Median FPS | P05 | `sodium.process_quad` total | `sodium.ctm` total | `ctm.resolve` total |
+| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| Fabric | Overlay Reject Diagnostics | 965.538 | 968 | 689 | 25022.568 ms | 15634.502 ms | 7850.218 ms |
+| Fabric | Direct Block Mask Lookup | 859.986 | 857 | 607 | 22965.671 ms | 14337.126 ms | 7466.761 ms |
+| NeoForge | Overlay Reject Diagnostics | 956.747 | 938 | 655 | 24995.433 ms | 15685.752 ms | 8028.398 ms |
+| NeoForge | Direct Block Mask Lookup | 911.262 | 930 | 701 | 22137.653 ms | 13637.053 ms | 7167.750 ms |
+
+Interpretation:
+
+- Die Buckets wurden auf beiden Loadern sichtbar kleiner.
+- Der reale FPS-Wert wurde aber nicht loader-parallel besser; Fabric verlor
+  deutlich gegen die Basis.
+- Die Aenderung bleibt deshalb draussen. Wir behalten die Reports als Hinweis,
+  dass reine Bucket-Verbesserungen ohne FPS-Gewinn nicht automatisch
+  release-wuerdig sind.
