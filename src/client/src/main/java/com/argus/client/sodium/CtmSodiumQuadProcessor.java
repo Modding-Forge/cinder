@@ -195,7 +195,7 @@ public final class CtmSodiumQuadProcessor {
                 renderScratch);
         ArgusBenchmark.record(ArgusBenchmark.CTM_RESOLVE, resolveStart);
         CtmCandidateAnalysis.record(blockId, baseSprite, face,
-                candidateScratch);
+                candidateScratch, resolved && renderScratch.hasWork());
         if (!resolved || !renderScratch.hasWork()) {
             return ArgusCtmFaceSpriteResult.NO_WORK;
         }

@@ -1105,3 +1105,51 @@ Interpretation:
 - Die gesparten NeighborView-Zugriffe wiegen die zusaetzliche lokale
   Kontrolllogik nicht auf. Der Code wurde revertiert; Material Sprite Cache
   bleibt die aktuelle Basis.
+
+## Candidate Work-Rate Diagnostics 2026-06-17
+
+Status: **implementiert und auf beiden Loadern verifiziert.**
+
+Ergaenzung:
+
+- Benchmark-Reports schreiben pro CTM-Candidate-Set jetzt:
+  - `resolvedWorkCalls`
+  - `resolvedNoWorkCalls`
+  - `resolvedWorkShare`
+- Die Werte werden nur bei `-Dargus.benchmark=true` gesammelt und veraendern
+  normales Gameplay nicht.
+
+Validierter Command:
+
+```powershell
+.\gradlew.bat :src:shared:test :src:fabric:build :src:neoforge:build
+```
+
+Benchmark-Reports:
+
+- `build/argus-benchmark/reports/ctm-v3-candidate-work-rate-20260617/20260617-151200-fabric-candidate-work-rate-1.json`
+- `build/argus-benchmark/reports/ctm-v3-candidate-work-rate-20260617/20260617-151324-neoforge-candidate-work-rate-1.json`
+
+Auszug:
+
+| Loader | Block/Sprite/Face | Calls | Work | No Work | Work Share | Avg Effective |
+| --- | --- | ---: | ---: | ---: | ---: | ---: |
+| Fabric | deepslate / deepslate_top / up | 487481 | 24802 | 462679 | 5.10% | 0.080 |
+| Fabric | grass_block / grass_block_top / up | 384778 | 1588 | 383190 | 0.40% | 0.009 |
+| Fabric | stone / stone / up | 344296 | 50853 | 293443 | 14.80% | 0.245 |
+| NeoForge | deepslate / deepslate_top / up | 485658 | 24700 | 460958 | 5.10% | 0.080 |
+| NeoForge | grass_block / grass_block_top / up | 381105 | 1498 | 379607 | 0.40% | 0.009 |
+| NeoForge | stone / stone / up | 344352 | 51123 | 293229 | 14.80% | 0.244 |
+
+Interpretation:
+
+- Fabric und NeoForge zeigen fast identische Work-Raten. Das Problem ist also
+  nicht loader-spezifisch.
+- Die dominanten Candidate-Sets enden ueberwiegend als negative Resolves.
+  Weitere generische Selector-Mikrooptimierungen bleiben deshalb
+  unwahrscheinlich.
+- Der naechste reale Hebel ist ein vorbereiteter Negativ-/Gruppenpfad fuer
+  diese grossen homogenen Overlay-Sets, der den Selector nur noch fuer die
+  wenigen effektiven Regeln betritt. Wichtig: Der bereits verworfene globale
+  Empty-Filter-Fast-Return darf nicht einfach wiederholt werden; die neue
+  Variante muss enger an diese gemessenen Kandidatenformen gebunden sein.

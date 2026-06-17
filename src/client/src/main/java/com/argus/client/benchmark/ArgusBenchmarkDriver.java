@@ -752,6 +752,16 @@ public final class ArgusBenchmarkDriver {
                     .append(',');
             out.append("\"blockRules\":").append(row.blockRules())
                     .append(',');
+            out.append("\"resolvedWorkCalls\":")
+                    .append(row.resolvedWorkCalls()).append(',');
+            out.append("\"resolvedNoWorkCalls\":")
+                    .append(row.resolvedNoWorkCalls()).append(',');
+            out.append("\"resolvedWorkShare\":")
+                    .append(formatDouble(row.calls() == 0L
+                            ? 0.0D
+                            : (double) row.resolvedWorkCalls()
+                            / row.calls()))
+                    .append(',');
             out.append("\"averageEffectiveBlockRules\":")
                     .append(formatDouble(row.averageEffectiveBlockRules()))
                     .append(',');
@@ -923,10 +933,12 @@ public final class ArgusBenchmarkDriver {
                 CtmCandidateAnalysis.topSnapshots();
         if (candidateSets.length > 0) {
             out.append("## CTM Candidate Sets\n\n");
-            out.append("| Calls | Block | Sprite | Face | Rules | Effective block rules | Overlay | Methods | Connectivity | Connect | Conditions |\n");
-            out.append("| ---: | --- | --- | --- | ---: | ---: | ---: | --- | --- | --- | --- |\n");
+            out.append("| Calls | Work | No work | Block | Sprite | Face | Rules | Effective block rules | Overlay | Methods | Connectivity | Connect | Conditions |\n");
+            out.append("| ---: | ---: | ---: | --- | --- | --- | ---: | ---: | ---: | --- | --- | --- | --- |\n");
             for (CtmCandidateAnalysis.Snapshot row : candidateSets) {
                 out.append("| ").append(row.calls())
+                        .append(" | ").append(row.resolvedWorkCalls())
+                        .append(" | ").append(row.resolvedNoWorkCalls())
                         .append(" | `").append(row.blockId())
                         .append("` | `").append(row.sprite())
                         .append("` | `").append(row.face())

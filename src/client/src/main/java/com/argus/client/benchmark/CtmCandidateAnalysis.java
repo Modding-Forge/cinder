@@ -53,7 +53,8 @@ public final class CtmCandidateAnalysis {
     public static void record(String blockId,
                               NamespaceId baseSprite,
                               int face,
-                              CtmCandidateScratch candidates) {
+                              CtmCandidateScratch candidates,
+                              boolean resolvedWork) {
         if (!ArgusBenchmark.enabled() || candidates == null
                 || !candidates.hasWork()) {
             return;
@@ -67,7 +68,7 @@ public final class CtmCandidateAnalysis {
                 faceName(face),
                 candidates.spriteRules(),
                 candidates.blockRules()))
-                .record(candidates.effectiveBlockRuleCount());
+                .record(candidates.effectiveBlockRuleCount(), resolvedWork);
     }
 
     /**
@@ -274,6 +275,8 @@ public final class CtmCandidateAnalysis {
         private final String conditions;
         private final String firstSource;
         private final LongAdder calls = new LongAdder();
+        private final LongAdder resolvedWorkCalls = new LongAdder();
+        private final LongAdder resolvedNoWorkCalls = new LongAdder();
         private final LongAdder effectiveBlockRuleTotal = new LongAdder();
         private final LongAdder zeroEffectiveBlockRuleCalls = new LongAdder();
         private final AtomicInteger maxEffectiveBlockRules =
@@ -299,8 +302,13 @@ public final class CtmCandidateAnalysis {
             this.firstSource = firstSource(spriteRules, blockRules);
         }
 
-        private void record(int effectiveBlockRules) {
+        private void record(int effectiveBlockRules, boolean resolvedWork) {
             calls.increment();
+            if (resolvedWork) {
+                resolvedWorkCalls.increment();
+            } else {
+                resolvedNoWorkCalls.increment();
+            }
             effectiveBlockRuleTotal.add(effectiveBlockRules);
             if (effectiveBlockRules == 0) {
                 zeroEffectiveBlockRuleCalls.increment();
@@ -321,6 +329,8 @@ public final class CtmCandidateAnalysis {
                     face,
                     spriteRules,
                     blockRules,
+                    resolvedWorkCalls.sum(),
+                    resolvedNoWorkCalls.sum(),
                     callCount == 0L
                             ? 0.0D
                             : (double) effectiveTotal / callCount,
@@ -380,6 +390,8 @@ public final class CtmCandidateAnalysis {
             String face,
             int spriteRules,
             int blockRules,
+            long resolvedWorkCalls,
+            long resolvedNoWorkCalls,
             double averageEffectiveBlockRules,
             int maxEffectiveBlockRules,
             long zeroEffectiveBlockRuleCalls,
