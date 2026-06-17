@@ -181,6 +181,7 @@ def argusBenchmarkProperties = [
         'argus.benchmark.settleTicks',
         'argus.benchmark.lowFpsThreshold',
         'argus.benchmark.lowFpsSampleLimit',
+        'argus.benchmark.ctmCandidateTop',
         'argus.benchmark.optionsFile',
         'argus.benchmark.configFile',
         'argus.benchmark.reportDir',

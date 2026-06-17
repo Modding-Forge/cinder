@@ -154,6 +154,7 @@ public final class ArgusBenchmarkDriver {
             ticks = 0;
             resetFpsSamples();
             ArgusBenchmark.resetTotals();
+            CtmCandidateAnalysis.reset();
             captureRuntimeBaselines();
             LOGGER.info("[Argus] benchmark-driver started world={} pos={}",
                     worldLabel(minecraft), positionLabel(minecraft.player));
@@ -731,6 +732,47 @@ public final class ArgusBenchmarkDriver {
         out.append('\n');
         appendJsonArrayEnd(out, 1, true);
 
+        appendJsonArrayStart(out, 1, "ctmCandidateSets");
+        CtmCandidateAnalysis.Snapshot[] candidateSets =
+                CtmCandidateAnalysis.topSnapshots();
+        for (int i = 0; i < candidateSets.length; i++) {
+            CtmCandidateAnalysis.Snapshot row = candidateSets[i];
+            if (i > 0) {
+                out.append(",\n");
+            }
+            indent(out, 2).append("{");
+            out.append("\"calls\":").append(row.calls()).append(',');
+            out.append("\"blockId\":\"").append(escapeJson(row.blockId()))
+                    .append("\",");
+            out.append("\"sprite\":\"").append(escapeJson(row.sprite()))
+                    .append("\",");
+            out.append("\"face\":\"").append(escapeJson(row.face()))
+                    .append("\",");
+            out.append("\"spriteRules\":").append(row.spriteRules())
+                    .append(',');
+            out.append("\"blockRules\":").append(row.blockRules())
+                    .append(',');
+            out.append("\"totalRules\":").append(row.totalRules())
+                    .append(',');
+            out.append("\"overlayRules\":").append(row.overlayRules())
+                    .append(',');
+            out.append("\"overlayShare\":")
+                    .append(formatDouble(row.overlayShare())).append(',');
+            out.append("\"methods\":\"").append(escapeJson(row.methods()))
+                    .append("\",");
+            out.append("\"connectivity\":\"")
+                    .append(escapeJson(row.connectivity())).append("\",");
+            out.append("\"connectModes\":\"")
+                    .append(escapeJson(row.connectModes())).append("\",");
+            out.append("\"conditions\":\"")
+                    .append(escapeJson(row.conditions())).append("\",");
+            out.append("\"firstSource\":\"")
+                    .append(escapeJson(row.firstSource())).append("\"");
+            out.append('}');
+        }
+        out.append('\n');
+        appendJsonArrayEnd(out, 1, true);
+
         appendJsonArrayStart(out, 1, "buckets");
         ArgusBenchmark.BucketSnapshot[] buckets = ArgusBenchmark
                 .snapshotTotals();
@@ -867,6 +909,28 @@ public final class ArgusBenchmarkDriver {
                         .append(" | ")
                         .append(lowFpsGcMillis[i] - startGcMillis)
                         .append(" |\n");
+            }
+            out.append('\n');
+        }
+        CtmCandidateAnalysis.Snapshot[] candidateSets =
+                CtmCandidateAnalysis.topSnapshots();
+        if (candidateSets.length > 0) {
+            out.append("## CTM Candidate Sets\n\n");
+            out.append("| Calls | Block | Sprite | Face | Rules | Overlay | Methods | Connectivity | Connect | Conditions |\n");
+            out.append("| ---: | --- | --- | --- | ---: | ---: | --- | --- | --- | --- |\n");
+            for (CtmCandidateAnalysis.Snapshot row : candidateSets) {
+                out.append("| ").append(row.calls())
+                        .append(" | `").append(row.blockId())
+                        .append("` | `").append(row.sprite())
+                        .append("` | `").append(row.face())
+                        .append("` | ").append(row.totalRules())
+                        .append(" | ")
+                        .append(formatDouble(row.overlayShare() * 100.0D))
+                        .append("% | `").append(row.methods())
+                        .append("` | `").append(row.connectivity())
+                        .append("` | `").append(row.connectModes())
+                        .append("` | `").append(row.conditions())
+                        .append("` |\n");
             }
             out.append('\n');
         }

@@ -2,6 +2,7 @@ package com.argus.client.sodium;
 
 import com.argus.config.ArgusConfigHolder;
 import com.argus.client.benchmark.ArgusBenchmark;
+import com.argus.client.benchmark.CtmCandidateAnalysis;
 import com.argus.client.render.CtmMinecraftNeighborView;
 import com.argus.ctm.CompactCtmTiles;
 import com.argus.ctm.CtmCandidateScratch;
@@ -164,6 +165,8 @@ public final class CtmSodiumQuadProcessor {
                     prefilterStart);
             return ArgusCtmFaceSpriteResult.NO_WORK;
         }
+        CtmCandidateAnalysis.record(blockId, baseSprite, face,
+                candidateScratch);
         ArgusBenchmark.record(ArgusBenchmark.CTM_PREFILTER, prefilterStart);
         long neighborStart = ArgusBenchmark.start();
         CtmMinecraftNeighborView neighborView = blockPlan.neighborView();
