@@ -4,12 +4,13 @@ import com.argus.config.ArgusConfigHolder;
 import com.argus.client.benchmark.ArgusBenchmark;
 import com.argus.client.render.CtmMinecraftNeighborView;
 import com.argus.ctm.CompactCtmTiles;
+import com.argus.ctm.CtmCandidateScratch;
 import com.argus.ctm.CtmMaterialEntry;
 import com.argus.ctm.CtmMaterialTable;
-import com.argus.ctm.CtmOverlayTile;
 import com.argus.ctm.CtmRenderResolver;
 import com.argus.ctm.CtmRenderScratch;
 import com.argus.ctm.CtmRenderSelection;
+import com.argus.ctm.CtmRule;
 import com.argus.ctm.CtmTileResolver;
 import com.argus.ctm.Faces;
 import com.argus.platform.Platforms;
@@ -21,9 +22,7 @@ import net.minecraft.client.renderer.chunk.ChunkSectionLayer;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.Identifier;
-import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
@@ -76,14 +75,11 @@ public final class CtmSodiumQuadProcessor {
     private final CtmRenderResolver resolver =
             new CtmRenderResolver(Platforms.get().ctmRegistry());
     private final CtmRenderScratch renderScratch = new CtmRenderScratch();
+    private final CtmCandidateScratch candidateScratch =
+            new CtmCandidateScratch();
 
     private static final ConcurrentMap<Identifier, NamespaceId> SPRITE_IDS =
             new ConcurrentHashMap<>();
-    private static final ConcurrentMap<Block, String> BLOCK_IDS =
-            new ConcurrentHashMap<>();
-
-    private @Nullable BlockAndTintGetter viewSource;
-    private @Nullable CtmMinecraftNeighborView view;
 
     /**
      * Resolves and applies CTM for one Sodium terrain quad.
@@ -96,13 +92,32 @@ public final class CtmSodiumQuadProcessor {
                            BlockPos pos,
                            MutableQuadViewImpl overlaySource,
                            CtmSodiumQuadPlan plan) {
+        return prepare(quad, new ArgusSodiumBlockRenderPlan(level, state, pos),
+                overlaySource, plan);
+    }
+
+    /**
+     * Resolves and applies CTM for one Sodium terrain quad using the
+     * per-block model-emitter plan.
+     *
+     * @return true when {@code plan} contains overlay quads to emit later
+     */
+    public boolean prepare(MutableQuadViewImpl quad,
+                           ArgusSodiumBlockRenderPlan blockPlan,
+                           MutableQuadViewImpl overlaySource,
+                           CtmSodiumQuadPlan plan) {
         plan.clear();
-        if (!ArgusConfigHolder.get().ctmActive()) {
+        if (!blockPlan.config().ctmActive()) {
             return false;
         }
         CtmMaterialTable materialTable = CtmMaterialTable.current();
+        BlockAndTintGetter level = blockPlan.level();
+        BlockState state = blockPlan.state();
+        BlockPos pos = blockPlan.pos();
+        ArgusCtmBlockPlan ctmBlockPlan = blockPlan.ctm();
+        String blockId = ctmBlockPlan.blockId();
         if (materialTable.isEmpty() || level == null
-                || state == null || pos == null) {
+                || state == null || pos == null || blockId == null) {
             return false;
         }
         Direction direction = faceDirection(quad);
@@ -119,59 +134,110 @@ public final class CtmSodiumQuadProcessor {
         if (sourceSprite == null) {
             return false;
         }
-        String blockId = blockId(state);
         NamespaceId baseSprite = namespaceId(sourceSprite);
+        ArgusCtmFaceSpriteResult resolved =
+                ctmBlockPlan.cached(face, sourceSprite);
+        if (resolved == null) {
+            ArgusBenchmark.count(ArgusBenchmark.CTM_FACE_CACHE_MISS);
+            resolved = resolveFaceSprite(ctmBlockPlan, blockId, baseSprite,
+                    sourceSprite, face, pos);
+            ctmBlockPlan.cache(face, sourceSprite, resolved);
+        } else {
+            ArgusBenchmark.count(ArgusBenchmark.CTM_FACE_CACHE_HIT);
+        }
+        return applyResolvedResult(resolved, quad, overlaySource, plan,
+                materialTable, state, level, pos, blockId, direction,
+                sourceSprite, fullBlockExteriorFace, ctmBlockPlan);
+    }
+
+    private ArgusCtmFaceSpriteResult resolveFaceSprite(
+            ArgusCtmBlockPlan blockPlan,
+            String blockId,
+            NamespaceId baseSprite,
+            TextureAtlasSprite sourceSprite,
+            int face,
+            BlockPos pos) {
         long prefilterStart = ArgusBenchmark.start();
-        if (!resolver.hasCandidates(blockId, baseSprite, face)) {
+        if (!resolver.candidatesInto(blockId, baseSprite, face,
+                candidateScratch)) {
             ArgusBenchmark.record(ArgusBenchmark.CTM_PREFILTER,
                     prefilterStart);
-            return false;
+            return ArgusCtmFaceSpriteResult.NO_WORK;
         }
         ArgusBenchmark.record(ArgusBenchmark.CTM_PREFILTER, prefilterStart);
         long neighborStart = ArgusBenchmark.start();
-        CtmMinecraftNeighborView neighborView = neighborView(level, pos, state);
+        CtmMinecraftNeighborView neighborView = blockPlan.neighborView();
+        if (neighborView == null) {
+            ArgusBenchmark.record(ArgusBenchmark.CTM_NEIGHBOR_VIEW,
+                    neighborStart);
+            return ArgusCtmFaceSpriteResult.NO_WORK;
+        }
         neighborView.setSpriteForFace(0, 0, 0, face, sourceSprite);
         ArgusBenchmark.record(ArgusBenchmark.CTM_NEIGHBOR_VIEW,
                 neighborStart);
         long resolveStart = ArgusBenchmark.start();
-        boolean resolved = resolver.resolveInto(
+        boolean resolved = resolver.resolveCandidatesInto(
                 blockId,
                 baseSprite,
                 neighborView,
                 pos.getX(), pos.getY(), pos.getZ(),
                 face,
+                candidateScratch,
                 renderScratch);
         ArgusBenchmark.record(ArgusBenchmark.CTM_RESOLVE, resolveStart);
         if (!resolved || !renderScratch.hasWork()) {
+            return ArgusCtmFaceSpriteResult.NO_WORK;
+        }
+        return ArgusCtmFaceSpriteResult.copyOf(renderScratch);
+    }
+
+    private boolean applyResolvedResult(
+            ArgusCtmFaceSpriteResult resolved,
+            MutableQuadViewImpl quad,
+            MutableQuadViewImpl overlaySource,
+            CtmSodiumQuadPlan plan,
+            CtmMaterialTable materialTable,
+            BlockState state,
+            BlockAndTintGetter level,
+            BlockPos pos,
+            String blockId,
+            Direction direction,
+            TextureAtlasSprite sourceSprite,
+            boolean fullBlockExteriorFace,
+            ArgusCtmBlockPlan ctmBlockPlan) {
+        if (!resolved.hasWork()) {
             debugSeenQuad(blockId, pos, direction, sourceSprite, null,
-                    neighborView, "no-selection");
+                    null, "no-selection");
             return false;
         }
-        CtmRenderSelection selection = renderScratch.replacement();
+        CtmRenderSelection selection = resolved.replacement();
         if (selection != null && !fullBlockExteriorFace) {
             debugSeenQuad(blockId, pos, direction, sourceSprite, selection,
-                    neighborView, "not-full-exterior-face");
+                    null, "not-full-exterior-face");
             selection = null;
         }
         if (selection != null
                 && isOppositeNominalGlassDuplicate(quad, blockId, direction)) {
+            CtmMinecraftNeighborView neighborView = ctmBlockPlan.neighborView();
             debugGlassDecision(quad, blockId, pos, direction, sourceSprite,
                     selection, null, neighborView,
                     "discard-model-backface");
             plan.discardOriginal();
             return false;
         }
+        CtmMinecraftNeighborView neighborView = null;
         if (selection != null && isConnectedGlassInteriorFace(
-                quad, state, direction, neighborView, selection, blockId)) {
+                direction, ctmBlockPlan, selection, blockId)) {
+            neighborView = ctmBlockPlan.neighborView();
             debugGlassDecision(quad, blockId, pos, direction, sourceSprite,
                     selection, null, neighborView, "discard-interior");
             plan.discardOriginal();
             return false;
         }
-        if (renderScratch.hasOverlays()) {
+        if (resolved.hasOverlays()) {
             overlaySource.copyFrom(quad);
             long overlayStart = ArgusBenchmark.start();
-            buildOverlayPlan(renderScratch, materialTable, state, level, pos,
+            buildOverlayPlan(resolved, materialTable, state, level, pos,
                     quad.getRenderType(), plan);
             ArgusBenchmark.record(ArgusBenchmark.CTM_OVERLAY_PLAN,
                     overlayStart);
@@ -181,7 +247,7 @@ public final class CtmSodiumQuadProcessor {
         }
         if (!selection.hasPrimaryTile() || selection.isPrimaryDefault()) {
             debugSeenQuad(blockId, pos, direction, sourceSprite, selection,
-                    neighborView,
+                    null,
                     "default-selection");
             return plan.hasOverlays();
         }
@@ -224,15 +290,18 @@ public final class CtmSodiumQuadProcessor {
                 plan.clear();
                 if (sameSprite(sourceSprite, target)) {
                     ArgusBenchmark.record(ArgusBenchmark.CTM_MATERIAL,
-                            materialStart);
+                        materialStart);
                     debugSeenQuad(blockId, pos, direction, sourceSprite,
-                            selection, neighborView, "compact-same-sprite");
+                            selection, null, "compact-same-sprite");
                     return false;
                 }
                 ArgusBenchmark.record(ArgusBenchmark.CTM_MATERIAL,
                         materialStart);
                 debugReplacement(blockId, pos, direction, sourceSprite,
                         selection, target);
+                neighborView = neighborView == null
+                        ? ctmBlockPlan.neighborView()
+                        : neighborView;
                 debugGlassDecision(quad, blockId, pos, direction, sourceSprite,
                         selection, target, neighborView, "replace-compact");
                 long remapStart = ArgusBenchmark.start();
@@ -256,12 +325,15 @@ public final class CtmSodiumQuadProcessor {
         if (target == null || sameSprite(sourceSprite, target)) {
             ArgusBenchmark.record(ArgusBenchmark.CTM_MATERIAL, materialStart);
             debugSeenQuad(blockId, pos, direction, sourceSprite, selection,
-                    neighborView,
+                    null,
                     target == null ? "target-null" : "same-sprite");
             return false;
         }
         debugReplacement(blockId, pos, direction, sourceSprite,
                 selection, target);
+        neighborView = neighborView == null
+                ? ctmBlockPlan.neighborView()
+                : neighborView;
         debugGlassDecision(quad, blockId, pos, direction, sourceSprite,
                 selection, target, neighborView, "replace");
         ArgusBenchmark.record(ArgusBenchmark.CTM_MATERIAL, materialStart);
@@ -429,7 +501,7 @@ public final class CtmSodiumQuadProcessor {
                                       Direction direction,
                                       TextureAtlasSprite sourceSprite,
                                       @Nullable CtmRenderSelection selection,
-                                      CtmMinecraftNeighborView neighborView,
+                                      @Nullable CtmMinecraftNeighborView neighborView,
                                       String reason) {
         if (!ctmDebugLoggingActive()) {
             return;
@@ -440,6 +512,19 @@ public final class CtmSodiumQuadProcessor {
         }
         int index = DEBUG_LOGS.getAndIncrement();
         if (index >= DEBUG_LOG_LIMIT) {
+            return;
+        }
+        if (neighborView == null) {
+            LOGGER.info("[argus] Sodium CTM skipped block={} pos={} face={} "
+                            + "base={} reason={} rule={} neighbours=<cached>",
+                    blockId,
+                    pos,
+                    direction,
+                    sourceSprite.contents().name(),
+                    reason,
+                    selection == null
+                            ? "<none>"
+                            : selection.rule().sourceFile().orElse("<unknown>"));
             return;
         }
         LOGGER.info("[argus] Sodium CTM skipped block={} pos={} face={} "
@@ -478,7 +563,7 @@ public final class CtmSodiumQuadProcessor {
                                            TextureAtlasSprite sourceSprite,
                                            CtmRenderSelection selection,
                                            @Nullable TextureAtlasSprite target,
-                                           CtmMinecraftNeighborView neighborView,
+                                           @Nullable CtmMinecraftNeighborView neighborView,
                                            String action) {
         if (!ctmDebugLoggingActive()) {
             return;
@@ -488,6 +573,23 @@ public final class CtmSodiumQuadProcessor {
         }
         int index = GLASS_DEBUG_LOGS.getAndIncrement();
         if (index >= GLASS_DEBUG_LOG_LIMIT) {
+            return;
+        }
+        if (neighborView == null) {
+            LOGGER.info("[argus] Sodium glass CTM action={} pos={} face={} "
+                            + "cull={} nominal={} light={} renderType={} "
+                            + "base={} primaryTile={} target={} "
+                            + "neighbours=<cached>",
+                    action,
+                    pos,
+                    direction,
+                    quad.getCullFace(),
+                    quad.getNominalFace(),
+                    quad.getLightFace(),
+                    quad.getRenderType(),
+                    sourceSprite.contents().name(),
+                    selection.primaryTileIndex(),
+                    target == null ? "<none>" : target.contents().name());
             return;
         }
         int[] d = Faces.delta(direction.get3DDataValue());
@@ -582,17 +684,18 @@ public final class CtmSodiumQuadProcessor {
         return neighborView.blockId(d[0], d[1], d[2]);
     }
 
-    private void buildOverlayPlan(CtmRenderScratch scratch,
+    private void buildOverlayPlan(ArgusCtmFaceSpriteResult resolved,
                                   CtmMaterialTable materialTable,
                                   BlockState state,
                                   BlockAndTintGetter level,
                                   BlockPos pos,
                                   @Nullable ChunkSectionLayer sourceLayer,
                                   CtmSodiumQuadPlan plan) {
-        for (int i = 0; i < scratch.overlayCount(); i++) {
-            CtmOverlayTile overlayTile = scratch.overlay(i);
+        for (int i = 0; i < resolved.overlayCount(); i++) {
+            CtmRule overlayRule = resolved.overlayRule(i);
+            int tileIndex = resolved.overlayTileIndex(i);
             CtmMaterialEntry material = materialTable.findOrNull(
-                    overlayTile.rule(), overlayTile.tileIndex());
+                    overlayRule, tileIndex);
             if (material == null) {
                 continue;
             }
@@ -602,24 +705,11 @@ public final class CtmSodiumQuadProcessor {
                 continue;
             }
             int color = overlayTint.color(
-                    overlayTile.rule(), state, level, pos);
+                    overlayRule, state, level, pos);
             ChunkSectionLayer overlayLayer = layerPolicy.overlayLayer(
-                    overlayTile.rule(), sourceLayer);
+                    overlayRule, sourceLayer);
             plan.addOverlay(sprite, color, overlayLayer);
         }
-    }
-
-    private CtmMinecraftNeighborView neighborView(BlockAndTintGetter level,
-                                                  BlockPos pos,
-                                                  BlockState state) {
-        CtmMinecraftNeighborView current = view;
-        if (current == null || viewSource != level) {
-            current = new CtmMinecraftNeighborView(level);
-            view = current;
-            viewSource = level;
-        }
-        current.reset(pos, state);
-        return current;
     }
 
     private static @Nullable Direction faceDirection(MutableQuadViewImpl quad) {
@@ -654,29 +744,19 @@ public final class CtmSodiumQuadProcessor {
         return previous == null ? created : previous;
     }
 
-    private static String blockId(BlockState state) {
-        Block block = state.getBlock();
-        String cached = BLOCK_IDS.get(block);
-        if (cached != null) {
-            return cached;
-        }
-        Identifier id = BuiltInRegistries.BLOCK.getKey(block);
-        String created = id == null ? "" : id.toString();
-        String previous = BLOCK_IDS.putIfAbsent(block, created);
-        return previous == null ? created : previous;
-    }
-
     private static boolean isConnectedGlassInteriorFace(
-            MutableQuadViewImpl quad,
-            BlockState state,
             Direction direction,
-            CtmMinecraftNeighborView neighborView,
+            ArgusCtmBlockPlan blockPlan,
             CtmRenderSelection selection,
             String blockId) {
         if (selection.isOverlay()) {
             return false;
         }
         if (!isGlassLikeBlock(blockId)) {
+            return false;
+        }
+        CtmMinecraftNeighborView neighborView = blockPlan.neighborView();
+        if (neighborView == null) {
             return false;
         }
         int[] d = Faces.delta(direction.get3DDataValue());

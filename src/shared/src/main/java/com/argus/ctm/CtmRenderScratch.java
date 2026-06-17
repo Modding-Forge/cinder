@@ -19,7 +19,8 @@ import java.util.List;
 public final class CtmRenderScratch {
 
     private CtmRenderSelection replacement;
-    private CtmOverlayTile[] overlays = new CtmOverlayTile[8];
+    private CtmRule[] overlayRules = new CtmRule[8];
+    private int[] overlayTileIndices = new int[8];
     private int overlayCount;
 
     /**
@@ -28,7 +29,8 @@ public final class CtmRenderScratch {
     public void clear() {
         replacement = null;
         for (int i = 0; i < overlayCount; i++) {
-            overlays[i] = null;
+            overlayRules[i] = null;
+            overlayTileIndices[i] = 0;
         }
         overlayCount = 0;
     }
@@ -40,13 +42,18 @@ public final class CtmRenderScratch {
     public void addOverlays(List<CtmOverlayTile> tiles) {
         ensureCapacity(overlayCount + tiles.size());
         for (int i = 0; i < tiles.size(); i++) {
-            overlays[overlayCount++] = tiles.get(i);
+            CtmOverlayTile tile = tiles.get(i);
+            overlayRules[overlayCount] = tile.rule();
+            overlayTileIndices[overlayCount] = tile.tileIndex();
+            overlayCount++;
         }
     }
 
     public void addOverlay(CtmRule rule, int tileIndex) {
         ensureCapacity(overlayCount + 1);
-        overlays[overlayCount++] = new CtmOverlayTile(rule, tileIndex);
+        overlayRules[overlayCount] = rule;
+        overlayTileIndices[overlayCount] = tileIndex;
+        overlayCount++;
     }
 
     public CtmRenderSelection replacement() {
@@ -73,7 +80,21 @@ public final class CtmRenderScratch {
         if (index < 0 || index >= overlayCount) {
             throw new IndexOutOfBoundsException(index);
         }
-        return overlays[index];
+        return new CtmOverlayTile(overlayRules[index], overlayTileIndices[index]);
+    }
+
+    public CtmRule overlayRule(int index) {
+        if (index < 0 || index >= overlayCount) {
+            throw new IndexOutOfBoundsException(index);
+        }
+        return overlayRules[index];
+    }
+
+    public int overlayTileIndex(int index) {
+        if (index < 0 || index >= overlayCount) {
+            throw new IndexOutOfBoundsException(index);
+        }
+        return overlayTileIndices[index];
     }
 
     /**
@@ -85,18 +106,21 @@ public final class CtmRenderScratch {
         }
         ArrayList<CtmOverlayTile> list = new ArrayList<>(overlayCount);
         for (int i = 0; i < overlayCount; i++) {
-            list.add(overlays[i]);
+            list.add(new CtmOverlayTile(overlayRules[i], overlayTileIndices[i]));
         }
         return new CtmRenderPlan(replacement, list);
     }
 
     private void ensureCapacity(int target) {
-        if (target <= overlays.length) {
+        if (target <= overlayRules.length) {
             return;
         }
-        CtmOverlayTile[] next = new CtmOverlayTile[Math.max(target,
-                overlays.length * 2)];
-        System.arraycopy(overlays, 0, next, 0, overlayCount);
-        overlays = next;
+        int nextSize = Math.max(target, overlayRules.length * 2);
+        CtmRule[] nextRules = new CtmRule[nextSize];
+        int[] nextTileIndices = new int[nextSize];
+        System.arraycopy(overlayRules, 0, nextRules, 0, overlayCount);
+        System.arraycopy(overlayTileIndices, 0, nextTileIndices, 0, overlayCount);
+        overlayRules = nextRules;
+        overlayTileIndices = nextTileIndices;
     }
 }

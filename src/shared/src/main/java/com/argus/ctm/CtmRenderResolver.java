@@ -14,21 +14,23 @@ import java.util.Objects;
  *
  * <h2>Threading</h2>
  *
- * <p>The resolver is stateless and thread-safe. It reads immutable
- * {@link CtmRuleSet} snapshots through {@link CtmRegistry}.
+ * <p>The resolver owns reusable scratch storage and is not thread-safe. Keep
+ * one instance per renderer worker or section-build pipeline. It reads
+ * immutable {@link CtmRuleSet} snapshots through {@link CtmRegistry}.
  *
  * <h2>Performance</h2>
  *
  * <p>Performance: HOT PATH. Allocation policy: no allocation when the
- * prefilter has no candidates; one {@link CtmSelector} and one
- * {@link CtmRenderPlan} when CTM work is selected. Callers may keep a resolver
- * instance per section build to avoid repeatedly allocating it.
+ * prefilter has no candidates; compatibility callers that request a
+ * {@link CtmRenderPlan} still allocate that plan only after CTM work is found.
  */
 public final class CtmRenderResolver {
 
     private final CtmRegistry registry;
     private final CtmSelector selector =
             new CtmSelector(CtmRuleSet.empty());
+    private final CtmCandidateScratch candidateScratch =
+            new CtmCandidateScratch();
 
     public CtmRenderResolver(CtmRegistry registry) {
         this.registry = Objects.requireNonNull(registry, "registry");
@@ -45,6 +47,22 @@ public final class CtmRenderResolver {
         }
         return registry.ruleSet().renderIndex()
                 .hasCandidate(baseSprite, blockId, face);
+    }
+
+    /**
+     * Finds face-filtered candidates and stores them in caller-owned scratch.
+     */
+    public boolean candidatesInto(String blockId,
+                                  NamespaceId baseSprite,
+                                  int face,
+                                  CtmCandidateScratch out) {
+        Objects.requireNonNull(out, "out");
+        if (blockId == null || baseSprite == null) {
+            out.clear();
+            return false;
+        }
+        return registry.ruleSet().renderIndex()
+                .candidatesInto(baseSprite, blockId, face, out);
     }
 
     /**
@@ -82,29 +100,54 @@ public final class CtmRenderResolver {
         if (blockId == null || baseSprite == null || view == null) {
             return false;
         }
-        CtmRuleSet ruleSet = registry.ruleSet();
-        CtmRenderIndex index = ruleSet.renderIndex();
-        CtmRule[] spriteRules = index.spriteCandidates(baseSprite, face);
-        CtmRule[] blockRules = index.blockCandidates(blockId, face);
-        if (spriteRules.length == 0 && blockRules.length == 0) {
+        if (!registry.ruleSet().renderIndex()
+                .candidatesInto(baseSprite, blockId, face, candidateScratch)) {
             return false;
         }
+        return resolveCandidatesInto(blockId, baseSprite, view, x, y, z, face,
+                candidateScratch, out);
+    }
 
-        CtmRenderSelection selection = collectFromRules(
-                selector,
-                spriteRules,
-                view, x, y, z, face, baseSprite, out);
-        if (selection != null) {
-            out.setReplacement(selection);
-            return true;
+    /**
+     * Resolves caller-provided candidate arrays into caller-owned storage.
+     */
+    public boolean resolveCandidatesInto(String blockId,
+                                         NamespaceId baseSprite,
+                                         NeighborView view,
+                                         int x, int y, int z,
+                                         int face,
+                                         CtmCandidateScratch candidates,
+                                         CtmRenderScratch out) {
+        Objects.requireNonNull(candidates, "candidates");
+        Objects.requireNonNull(out, "out");
+        out.clear();
+        if (blockId == null || baseSprite == null || view == null
+                || !candidates.hasWork()) {
+            return false;
         }
-        selection = collectFromRules(
-                selector,
-                blockRules,
-                view, x, y, z, face, baseSprite, out);
-        if (selection != null) {
-            out.setReplacement(selection);
-            return true;
+        CtmRule[] spriteRules = candidates.spriteRules();
+        CtmRule[] blockRules = candidates.blockRules();
+
+        try {
+            selector.beginResolve(view, face);
+            CtmRenderSelection selection = collectFromRules(
+                    selector,
+                    spriteRules,
+                    view, x, y, z, face, baseSprite, out);
+            if (selection != null) {
+                out.setReplacement(selection);
+                return true;
+            }
+            selection = collectFromRules(
+                    selector,
+                    blockRules,
+                    view, x, y, z, face, baseSprite, out);
+            if (selection != null) {
+                out.setReplacement(selection);
+                return true;
+            }
+        } finally {
+            selector.endResolve();
         }
         return out.hasOverlays();
     }
@@ -138,7 +181,7 @@ public final class CtmRenderResolver {
             NamespaceId baseSprite,
             CtmRenderScratch out) {
         for (CtmRule rule : rules) {
-            if (rule.method().isOverlay()) {
+            if (rule.runtimeProfile().isOverlay()) {
                 if (!selector.maySelectConnectedOverlay(rule, view, face)) {
                     continue;
                 }

@@ -3,6 +3,7 @@ package com.argus.ctm;
 import com.argus.resource.ComponentMatchers;
 import com.argus.resource.NamespaceId;
 import com.argus.resource.RangeListInt;
+import com.argus.resource.WeightedSelector;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -60,6 +61,7 @@ import java.util.Set;
 public final class CtmRule {
 
     private final CtmMethod method;
+    private final CtmRuleRuntimeProfile runtimeProfile;
     private final List<NamespaceId> matchTiles;
     private final List<BlockSpec> matchBlocks;
     private final String[] matchBlockIds;
@@ -76,6 +78,7 @@ public final class CtmRule {
     private final int width;              // 0 if not REPEAT
     private final int height;             // 0 if not REPEAT
     private final List<Integer> randomWeights;  // null if not RANDOM
+    private final WeightedSelector randomSelector; // null when weights are absent or incomplete
     private final boolean innerSeams;
     private final int[] ctmOverrides;     // length 47, -1 = no override
     private final int tintIndex;
@@ -87,6 +90,7 @@ public final class CtmRule {
 
     private CtmRule(Builder b) {
         this.method = b.method;
+        this.runtimeProfile = CtmRuleRuntimeProfile.of(b.method);
         this.matchTiles = List.copyOf(b.matchTiles);
         this.matchBlocks = List.copyOf(b.matchBlocks);
         this.matchBlockIds = blockIds(this.matchBlocks);
@@ -103,7 +107,11 @@ public final class CtmRule {
         this.weight = b.weight;
         this.width = b.width;
         this.height = b.height;
-        this.randomWeights = b.randomWeights;
+        this.randomWeights = b.randomWeights == null
+                ? null
+                : List.copyOf(b.randomWeights);
+        this.randomSelector = buildRandomSelector(this.randomWeights,
+                this.tiles.size());
         this.innerSeams = b.innerSeams;
         this.ctmOverrides = b.ctmOverrides;
         this.tintIndex = b.tintIndex;
@@ -116,6 +124,13 @@ public final class CtmRule {
 
     public CtmMethod method() {
         return method;
+    }
+
+    /**
+     * Returns precomputed renderer-facing method metadata for this rule.
+     */
+    public CtmRuleRuntimeProfile runtimeProfile() {
+        return runtimeProfile;
     }
 
     public List<NamespaceId> matchTiles() {
@@ -180,6 +195,16 @@ public final class CtmRule {
 
     public List<Integer> randomWeights() {
         return randomWeights;
+    }
+
+    /**
+     * Returns the compiled weighted random selector for this rule.
+     *
+     * <p>Performance: HOT PATH. Allocation policy: none. The selector is built
+     * once with the immutable rule snapshot and reused by random CTM methods.
+     */
+    WeightedSelector randomSelector() {
+        return randomSelector;
     }
 
     public boolean innerSeams() {
@@ -249,6 +274,18 @@ public final class CtmRule {
             }
         }
         return ids.toArray(String[]::new);
+    }
+
+    private static WeightedSelector buildRandomSelector(
+            List<Integer> weights, int tileCount) {
+        if (weights == null || weights.size() != tileCount) {
+            return null;
+        }
+        int[] raw = new int[weights.size()];
+        for (int i = 0; i < weights.size(); i++) {
+            raw[i] = weights.get(i);
+        }
+        return new WeightedSelector(raw);
     }
 
     /**

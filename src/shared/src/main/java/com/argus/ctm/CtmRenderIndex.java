@@ -43,6 +43,25 @@ public final class CtmRenderIndex {
     }
 
     /**
+     * Fills caller-owned candidate storage for the requested sprite/block/face.
+     */
+    public boolean candidatesInto(NamespaceId sprite,
+                                  String blockId,
+                                  int face,
+                                  CtmCandidateScratch out) {
+        Objects.requireNonNull(out, "out");
+        out.clear();
+        CtmRule[] spriteRules = spriteCandidates(sprite, face);
+        CtmRule[] blockRules = blockCandidates(blockId, face);
+        if (spriteRules.length == 0 && blockRules.length == 0) {
+            return false;
+        }
+        out.set(spriteRules, blockRules,
+                workFlags(spriteRules) | workFlags(blockRules));
+        return true;
+    }
+
+    /**
      * Returns {@code true} when the sprite has any rule candidate for a face.
      */
     public boolean hasSpriteCandidate(NamespaceId sprite, int face) {
@@ -87,7 +106,12 @@ public final class CtmRenderIndex {
 
     static CandidateFlags flagsFor(CtmRule rule) {
         Objects.requireNonNull(rule, "rule");
-        return new CandidateFlags(rule.facesMask(), rule.method().isOverlay());
+        return new CandidateFlags(rule.facesMask(),
+                rule.runtimeProfile().isOverlay());
+    }
+
+    static CtmRule[] noRules() {
+        return NO_RULES;
     }
 
     static CtmRule[][] byFace(java.util.List<CtmRule> rules) {
@@ -131,6 +155,18 @@ public final class CtmRenderIndex {
             out.put(entry.getKey(), copied);
         }
         return Map.copyOf(out);
+    }
+
+    private static int workFlags(CtmRule[] rules) {
+        int flags = CtmCandidateScratch.NO_WORK;
+        for (CtmRule rule : rules) {
+            if (rule.runtimeProfile().isOverlay()) {
+                flags |= CtmCandidateScratch.OVERLAY_ONLY;
+            } else {
+                flags |= CtmCandidateScratch.REPLACEMENT_ONLY;
+            }
+        }
+        return flags;
     }
 
     /**

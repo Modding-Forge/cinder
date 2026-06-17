@@ -106,6 +106,12 @@ public final class CtmSelector {
             buildOverlayTileCache();
 
     private final CtmRuleSet ruleSet;
+    private NeighborView centerCacheView;
+    private NamespaceId centerCacheSprite;
+    private String centerCacheBlockId;
+    private int centerCacheFace;
+    private boolean centerCacheFullBlock;
+    private boolean centerCacheActive;
 
     public CtmSelector(CtmRuleSet ruleSet) {
         this.ruleSet = ruleSet;
@@ -113,6 +119,34 @@ public final class CtmSelector {
 
     public CtmRuleSet ruleSet() {
         return ruleSet;
+    }
+
+    /**
+     * Starts a short-lived per-resolve cache for centre-block facts.
+     *
+     * <p>Performance: HOT PATH. Allocation policy: none. The cache is scoped
+     * explicitly by {@link #endResolve()} so callers that reuse mutable
+     * neighbour views cannot observe stale centre data after the resolve.
+     */
+    void beginResolve(NeighborView view, int face) {
+        this.centerCacheView = view;
+        this.centerCacheFace = face;
+        this.centerCacheBlockId = view == null ? null : view.blockId(0, 0, 0);
+        this.centerCacheSprite = view == null ? null : view.sprite(0, 0, 0, face);
+        this.centerCacheFullBlock = view != null && view.isFullBlock(0, 0, 0);
+        this.centerCacheActive = view != null;
+    }
+
+    /**
+     * Clears the per-resolve centre cache.
+     */
+    void endResolve() {
+        this.centerCacheActive = false;
+        this.centerCacheView = null;
+        this.centerCacheSprite = null;
+        this.centerCacheBlockId = null;
+        this.centerCacheFace = 0;
+        this.centerCacheFullBlock = false;
     }
 
     /**
@@ -217,7 +251,7 @@ public final class CtmSelector {
     public CtmRenderSelection selectRender(CtmRule rule, NeighborView view,
                                            int x, int y, int z, int face,
                                            NamespaceId baseSprite) {
-        if (isLayered(rule)) {
+        if (rule != null && rule.runtimeProfile().isLayered()) {
             CtmSelectionResult[] layers =
                     selectLayered(rule, view, x, y, z, face);
             if (layers[0] == null && layers[1] == null) {
@@ -237,7 +271,7 @@ public final class CtmSelector {
             }
             return CtmRenderSelection.from(rule, face, baseSprite, primary, null);
         }
-        if (rule != null && isOverlay(rule.method())) {
+        if (rule != null && rule.runtimeProfile().isOverlay()) {
             List<Integer> overlays = selectOverlayTiles(rule, view, face);
             return CtmRenderSelection.overlay(rule, face, baseSprite, overlays);
         }
@@ -262,7 +296,7 @@ public final class CtmSelector {
         if (rule == null || view == null || out == null) {
             return false;
         }
-        if (!isOverlay(rule.method())) {
+        if (!rule.runtimeProfile().isOverlay()) {
             return false;
         }
         if (rule.method() == CtmMethod.OVERLAY
@@ -319,22 +353,6 @@ public final class CtmSelector {
     }
 
     // --- per-method selectors -----------------------------------------
-
-    private static boolean isLayered(CtmRule rule) {
-        if (rule == null) {
-            return false;
-        }
-        return rule.method() == CtmMethod.HORIZONTAL_VERTICAL
-                || rule.method() == CtmMethod.VERTICAL_HORIZONTAL;
-    }
-
-    private static boolean isOverlay(CtmMethod method) {
-        return method == CtmMethod.OVERLAY
-                || method == CtmMethod.OVERLAY_CTM
-                || method == CtmMethod.OVERLAY_RANDOM
-                || method == CtmMethod.OVERLAY_REPEAT
-                || method == CtmMethod.OVERLAY_FIXED;
-    }
 
     private CtmSelectionResult selectCtm(CtmRule rule, NeighborView view,
                                          int x, int y, int z, int face) {
@@ -491,9 +509,8 @@ public final class CtmSelector {
                                             int x, int y, int z, int face) {
         int n = rule.tiles().size();
         if (n <= 0) return CtmSelectionResult.ofTile(0);
-        if (rule.randomWeights() != null && rule.randomWeights().size() == n) {
-            Integer[] ws = rule.randomWeights().toArray(new Integer[0]);
-            WeightedSelector sel = new WeightedSelector(ws);
+        WeightedSelector sel = rule.randomSelector();
+        if (sel != null) {
             return CtmSelectionResult.ofTile(sel.sample(
                     DeterministicRandom.hash(x, y, z, face)));
         }
@@ -832,9 +849,9 @@ public final class CtmSelector {
     private boolean sideConnect(CtmRule rule, NeighborView view,
                                 int dx, int dy, int dz, int face) {
         String neighbourBlockId = view.blockId(dx, dy, dz);
-        String centreBlockId = view.blockId(0, 0, 0);
+        String centreBlockId = centerBlockId(view);
         NamespaceId neighbourSprite = view.sprite(dx, dy, dz, face);
-        NamespaceId centreSprite = view.sprite(0, 0, 0, face);
+        NamespaceId centreSprite = centerSprite(view, face);
 
         if (!rule.connectTiles().isEmpty()) {
             return matchesAnyConnectTile(rule, neighbourSprite,
@@ -850,8 +867,9 @@ public final class CtmSelector {
                     && neighbourBlockId.equals(centreBlockId);
             case STATE -> neighbourBlockId != null
                     && neighbourBlockId.equals(centreBlockId)
-                    && view.isFullBlock(dx, dy, dz) == view.isFullBlock(0, 0, 0);
-            case TILE  -> neighbourSprite != null && neighbourSprite.equals(centreSprite);
+                    && view.isFullBlock(dx, dy, dz) == centerFullBlock(view);
+            case TILE  -> neighbourSprite != null
+                    && neighbourSprite.equals(centreSprite);
         };
     }
 
@@ -872,7 +890,7 @@ public final class CtmSelector {
         if (rule.connectTiles().isEmpty()
                 && rule.connectBlocks().isEmpty()
                 && !matchesAnyConnectBlockId(view.blockId(dx, dy, dz),
-                view.blockId(0, 0, 0))) {
+                centerBlockId(view))) {
             return false;
         }
         int[] normal = Faces.delta(face);
@@ -905,26 +923,45 @@ public final class CtmSelector {
                 dz + normal[2]);
     }
 
-    private static boolean sameAsBaseUnderRule(CtmRule rule,
-                                               NeighborView view,
-                                               int dx, int dy, int dz,
-                                               int face) {
+    private boolean sameAsBaseUnderRule(CtmRule rule,
+                                        NeighborView view,
+                                        int dx, int dy, int dz,
+                                        int face) {
         String neighbourBlockId = view.blockId(dx, dy, dz);
-        String centreBlockId = view.blockId(0, 0, 0);
+        String centreBlockId = centerBlockId(view);
         return switch (rule.connect()) {
             case BLOCK -> matchesAnyConnectBlockId(neighbourBlockId,
                     centreBlockId);
             case STATE -> matchesAnyConnectBlockId(neighbourBlockId,
                     centreBlockId)
                     && view.isFullBlock(dx, dy, dz)
-                    == view.isFullBlock(0, 0, 0);
+                    == centerFullBlock(view);
             case TILE -> {
                 NamespaceId neighbourSprite = view.sprite(dx, dy, dz, face);
-                NamespaceId centreSprite = view.sprite(0, 0, 0, face);
+                NamespaceId centreSprite = centerSprite(view, face);
                 yield neighbourSprite != null
                         && neighbourSprite.equals(centreSprite);
             }
         };
+    }
+
+    private String centerBlockId(NeighborView view) {
+        return centerCacheActive && centerCacheView == view
+                ? centerCacheBlockId
+                : view.blockId(0, 0, 0);
+    }
+
+    private NamespaceId centerSprite(NeighborView view, int face) {
+        return centerCacheActive && centerCacheView == view
+                && centerCacheFace == face
+                ? centerCacheSprite
+                : view.sprite(0, 0, 0, face);
+    }
+
+    private boolean centerFullBlock(NeighborView view) {
+        return centerCacheActive && centerCacheView == view
+                ? centerCacheFullBlock
+                : view.isFullBlock(0, 0, 0);
     }
 
     private static boolean matchesAnyConnectBlockId(String left,

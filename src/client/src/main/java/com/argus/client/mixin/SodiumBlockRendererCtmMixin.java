@@ -2,6 +2,7 @@ package com.argus.client.mixin;
 
 import com.argus.client.sodium.CtmSodiumQuadPlan;
 import com.argus.client.sodium.CtmSodiumQuadProcessor;
+import com.argus.client.sodium.ArgusSodiumModelEmitter;
 import com.argus.client.sodium.ArgusSodiumEmissive;
 import com.argus.client.sodium.ArgusSodiumBetterGrass;
 import com.argus.client.sodium.ArgusSodiumBetterSnow;
@@ -99,6 +100,9 @@ public abstract class SodiumBlockRendererCtmMixin
     @Inject(method = "processQuad", at = @At("HEAD"), cancellable = true)
     private void argus$prepareCtmQuad(MutableQuadViewImpl quad,
                                        CallbackInfo ci) {
+        if (ArgusSodiumModelEmitter.featurePipelineActive()) {
+            return;
+        }
         long totalStart = ArgusBenchmark.start();
         if (argus$emittingOverlay) {
             long naturalStart = ArgusBenchmark.start();
@@ -187,6 +191,9 @@ public abstract class SodiumBlockRendererCtmMixin
     @Inject(method = "processQuad", at = @At("RETURN"))
     private void argus$emitCtmOverlays(MutableQuadViewImpl quad,
                                         CallbackInfo ci) {
+        if (ArgusSodiumModelEmitter.featurePipelineActive()) {
+            return;
+        }
         long start = ArgusBenchmark.start();
         if (argus$emittingOverlay) {
             return;

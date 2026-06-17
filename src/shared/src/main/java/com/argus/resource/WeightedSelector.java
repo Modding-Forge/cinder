@@ -45,7 +45,27 @@ public final class WeightedSelector {
      * @throws IllegalArgumentException if any weight is negative
      */
     public WeightedSelector(int[] weights) {
-        this(toBoxed(weights));
+        Objects.requireNonNull(weights, "weights");
+        if (weights.length == 0) {
+            throw new IllegalArgumentException("weights must be non-empty");
+        }
+        this.weights = Arrays.copyOf(weights, weights.length);
+        long total = 0;
+        for (int i = 0; i < this.weights.length; i++) {
+            int w = this.weights[i];
+            if (w < 0) {
+                throw new IllegalArgumentException(
+                        "weight at index " + i + " is negative: " + w);
+            }
+            total += w;
+        }
+        this.prefix = new long[this.weights.length];
+        long acc = 0;
+        for (int i = 0; i < this.weights.length; i++) {
+            acc += this.weights[i];
+            this.prefix[i] = acc;
+        }
+        this.total = total;
     }
 
     public WeightedSelector(Integer[] weights) {
@@ -139,14 +159,6 @@ public final class WeightedSelector {
         z = (z ^ (z >>> 30)) * 0xbf58476d1ce4e5b7L;
         z = (z ^ (z >>> 27)) * 0x94d049bb133111ebL;
         return z ^ (z >>> 31);
-    }
-
-    private static Integer[] toBoxed(int[] src) {
-        Integer[] dst = new Integer[src.length];
-        for (int i = 0; i < src.length; i++) {
-            dst[i] = src[i];
-        }
-        return dst;
     }
 
     @Override

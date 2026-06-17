@@ -123,10 +123,13 @@ public final class CtmMinecraftNeighborView implements NeighborView {
     @Override
     public @Nullable NamespaceId sprite(int dx, int dy, int dz, int face) {
         ensureLoaded(dx, dy, dz);
-        NamespaceId sprite =
-                spriteTable[spriteIndexOf(dx, dy, dz, face)];
+        int index = spriteIndexOf(dx, dy, dz, face);
+        NamespaceId sprite = spriteTable[index];
         if (sprite == null) {
-            return fallbackSprite(dx, dy, dz, face);
+            sprite = fallbackSprite(dx, dy, dz, face);
+            if (sprite != null) {
+                spriteTable[index] = sprite;
+            }
         }
         return sprite;
     }
