@@ -727,6 +727,41 @@ Interpretation:
   Block-/Face-/Sprite-Cache-Trefferquote verbessern, ohne einen neuen Branch
   pro Regel einzufuehren.
 
+## Rejected: Face/Sprite Cache Disable 2026-06-17
+
+Status: **revertiert.**
+
+Experiment:
+
+- Der block-lokale `ArgusCtmFacePlan`-Cache wurde per Dev-Flag deaktivierbar
+  gemacht.
+- Motivation: Die aktuelle Trefferquote liegt nur bei etwa 2-3 Prozent. Wenn
+  der Cache netto mehr kostet als spart, koennte das Entfernen schneller sein.
+
+Benchmark-Reports:
+
+- `build/argus-benchmark/reports/ctm-v3-face-cache-disabled-20260617/20260617-142318-fabric-face-cache-disabled-1.json`
+- `build/argus-benchmark/reports/ctm-v3-face-cache-disabled-20260617/20260617-142440-neoforge-face-cache-disabled-1.json`
+
+Vergleich:
+
+| Loader | Zustand | Avg FPS | Median FPS | `sodium.process_quad` total | `sodium.ctm` total | `ctm.resolve` total |
+| --- | --- | ---: | ---: | ---: | ---: | ---: |
+| Fabric | Cache aktiv | 1113.890 | 1083 | 22575.6 ms | 13647.9 ms | 7180.2 ms |
+| Fabric | Cache deaktiviert | 933.357 | 901 | 22734.7 ms | 13783.2 ms | 7081.3 ms |
+| NeoForge | Cache aktiv | 1048.080 | 1035 | 22962.5 ms | 13743.6 ms | 7178.5 ms |
+| NeoForge | Cache deaktiviert | 905.724 | 892 | 23253.1 ms | 14189.2 ms | 7267.9 ms |
+
+Interpretation:
+
+- Der Cache bleibt trotz niedriger Trefferquote richtig. Fabric zeigte zwar
+  minimal weniger `ctm.resolve`, verlor aber massiv FPS und wurde in
+  `sodium.ctm`/`process_quad` schlechter.
+- NeoForge wurde in allen relevanten CTM-/Sodium-Buckets schlechter.
+- Der Dev-Flag und die Codeaenderung wurden entfernt. Der richtige naechste
+  Schritt ist nicht Cache-Entfernung, sondern gezieltere Cache-Treffer oder
+  weniger Cache-Misses.
+
 ## Accepted: Neighbor Rule Index 2026-06-17
 
 Status: **unit-, build- und benchmark-verifiziert.**
