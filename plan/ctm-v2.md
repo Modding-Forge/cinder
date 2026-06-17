@@ -831,6 +831,41 @@ Interpretation:
 - Vermutlich ist die stabile immutable Result-Form fuer JIT und Apply-Pfad
   guenstiger als die eingesparte Kopie. Der Code wurde revertiert.
 
+## Rejected: Neighbor-Index Key-Gate 2026-06-17
+
+Status: **revertiert.**
+
+Experiment:
+
+- `CtmNeighborRuleIndex` sollte pro Index nur die Nachbar-Daten lesen, die
+  seine Tabellen wirklich brauchen: Block-IDs nur bei Block-Keys, Sprites nur
+  bei Sprite-Keys.
+- Motivation: der Index liest acht Overlay-Nachbarn. Wenn ein realer
+  Kandidatensatz nur eine Key-Art verwendet, kann die andere Lookup-Art
+  entfallen.
+
+Benchmark-Reports:
+
+- `build/argus-benchmark/reports/ctm-v3-neighbor-key-gate-20260617/20260617-144424-fabric-neighbor-key-gate-1.json`
+- `build/argus-benchmark/reports/ctm-v3-neighbor-key-gate-20260617/20260617-144544-neoforge-neighbor-key-gate-1.json`
+
+Vergleich:
+
+| Loader | Zustand | Avg FPS | Median FPS | `sodium.process_quad` total | `sodium.ctm` total | `ctm.resolve` total |
+| --- | --- | ---: | ---: | ---: | ---: | ---: |
+| Fabric | Work-Split-Basis | 875.360 | 866 | 26346.8 ms | 16186.3 ms | 7925.7 ms |
+| Fabric | Neighbor Key-Gate | 889.2 | 887 | 24148.5 ms | 14992.3 ms | 7475.3 ms |
+| NeoForge | Work-Split-Basis | 862.221 | 871 | 23276.3 ms | 13976.8 ms | 6764.1 ms |
+| NeoForge | Neighbor Key-Gate | 884.0 | 873 | 23914.3 ms | 15067.9 ms | 7496.6 ms |
+
+Interpretation:
+
+- Fabric wurde leicht besser, aber NeoForge wurde in `sodium.ctm` und
+  `ctm.resolve` klar schlechter.
+- Da Fabric und NeoForge gleichwertige Release-Ziele sind und das Ziel
+  geringeres `ctm.resolve` ist, reicht ein Fabric-Gewinn nicht. Der Code wurde
+  revertiert.
+
 ## Accepted: Neighbor Rule Index 2026-06-17
 
 Status: **unit-, build- und benchmark-verifiziert.**
