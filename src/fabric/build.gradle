@@ -40,7 +40,7 @@ group = project.maven_group
 base {
     // Keep release artifacts loader-specific; Gradle appends
     // `-${version}` automatically, producing names like
-    // `argus-fabric-0.8.0.jar`.
+    // `argus-fabric-<version>.jar`.
     archivesName = "${project.mod_id}-fabric"
 }
 
