@@ -160,15 +160,70 @@ def argusBenchmarkProperties = [
         'argus.benchmark.closeOnComplete',
         'argus.benchmark.closeDelayTicks',
         'argus.benchmark.world',
+        'argus.benchmark.seed',
+        'argus.benchmark.targetX',
+        'argus.benchmark.targetY',
+        'argus.benchmark.targetZ',
+        'argus.benchmark.settleTicks',
+        'argus.benchmark.lowFpsThreshold',
+        'argus.benchmark.lowFpsSampleLimit',
+        'argus.benchmark.optionsFile',
+        'argus.benchmark.configFile',
+        'argus.benchmark.reportDir',
+        'argus.benchmark.runLabel',
+        'argus.sodium.modelEmitter.disabled',
 ]
+
+def copyBenchmarkTemplate = { String source, File target ->
+    if (source == null || source.isBlank()) {
+        return
+    }
+    File requested = new File(source)
+    File sourceFile = requested.isAbsolute()
+            ? requested
+            : rootProject.file(source)
+    if (!sourceFile.isFile()) {
+        throw new GradleException("Benchmark template does not exist: ${source}")
+    }
+    target.parentFile.mkdirs()
+    java.nio.file.Files.copy(
+            sourceFile.toPath(),
+            target.toPath(),
+            java.nio.file.StandardCopyOption.REPLACE_EXISTING)
+    logger.lifecycle("Copied benchmark template ${sourceFile} -> ${target}")
+}
 
 tasks.withType(JavaExec).configureEach { task ->
     if (task.name == 'runClient') {
+        systemProperty 'argus.benchmark.loader', 'fabric'
+        systemProperty 'argus.benchmark.loaderVersion', project.loader_version
+        systemProperty 'argus.benchmark.modVersion', project.mod_version
+        systemProperty 'argus.benchmark.minecraftVersion',
+                project.minecraft_version
+        if (System.getProperty('argus.benchmark.reportDir') == null) {
+            systemProperty 'argus.benchmark.reportDir',
+                    rootProject.file('build/argus-benchmark/reports')
+                            .absolutePath
+        }
         argusBenchmarkProperties.each { key ->
             def value = System.getProperty(key)
             if (value != null) {
-                systemProperty key, value
+                if (key == 'argus.benchmark.reportDir') {
+                    File requested = new File(value)
+                    systemProperty key, (requested.isAbsolute()
+                            ? requested
+                            : rootProject.file(value)).absolutePath
+                } else {
+                    systemProperty key, value
+                }
             }
+        }
+        doFirst {
+            copyBenchmarkTemplate(System.getProperty(
+                    'argus.benchmark.optionsFile'), project.file('run/options.txt'))
+            copyBenchmarkTemplate(System.getProperty(
+                    'argus.benchmark.configFile'),
+                    project.file('run/config/argus.properties'))
         }
     }
 }

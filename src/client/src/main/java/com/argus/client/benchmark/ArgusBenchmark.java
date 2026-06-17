@@ -30,6 +30,8 @@ public final class ArgusBenchmark {
     public static final int CTM_MATERIAL = 10;
     public static final int CTM_OVERLAY_PLAN = 11;
     public static final int CTM_UV_REMAP = 12;
+    public static final int CTM_FACE_CACHE_HIT = 13;
+    public static final int CTM_FACE_CACHE_MISS = 14;
 
     private static final boolean ENABLED =
             Boolean.getBoolean("argus.benchmark");
@@ -48,10 +50,14 @@ public final class ArgusBenchmark {
             "ctm.resolve",
             "ctm.material",
             "ctm.overlay_plan",
-            "ctm.uv_remap"
+            "ctm.uv_remap",
+            "ctm.face_cache_hit",
+            "ctm.face_cache_miss"
     };
     private static final LongAdder[] COUNTS = counters();
     private static final LongAdder[] NANOS = counters();
+    private static final LongAdder[] TOTAL_COUNTS = counters();
+    private static final LongAdder[] TOTAL_NANOS = counters();
     private static final long REPORT_INTERVAL_NANOS = 5_000_000_000L;
 
     private static volatile long lastReportNanos = System.nanoTime();
@@ -74,7 +80,59 @@ public final class ArgusBenchmark {
         long now = System.nanoTime();
         COUNTS[bucket].increment();
         NANOS[bucket].add(now - startNanos);
+        TOTAL_COUNTS[bucket].increment();
+        TOTAL_NANOS[bucket].add(now - startNanos);
         maybeReport(now);
+    }
+
+    public static void count(int bucket) {
+        if (!ENABLED) {
+            return;
+        }
+        COUNTS[bucket].increment();
+        TOTAL_COUNTS[bucket].increment();
+        maybeReport(System.nanoTime());
+    }
+
+    /**
+     * Returns cumulative benchmark buckets collected since JVM start.
+     *
+     * <p>Threading: safe to call from the render thread while section worker
+     * threads are still recording. Values are approximate at the instant of
+     * reading, which is sufficient for dev benchmark reports.
+     */
+    public static BucketSnapshot[] snapshotTotals() {
+        BucketSnapshot[] out = new BucketSnapshot[NAMES.length];
+        for (int i = 0; i < NAMES.length; i++) {
+            out[i] = new BucketSnapshot(
+                    NAMES[i],
+                    TOTAL_COUNTS[i].sum(),
+                    TOTAL_NANOS[i].sum());
+        }
+        return out;
+    }
+
+    /**
+     * Clears cumulative report buckets for a fresh benchmark measurement
+     * window.
+     *
+     * <p>Threading: intended for dev autopilot use after world setup and
+     * before the measured route starts. Section worker threads may still be
+     * active, so this is an approximate boundary, but it removes resource
+     * reload, world creation, spawn placement and settle work from final
+     * reports.
+     */
+    public static void resetTotals() {
+        if (!ENABLED) {
+            return;
+        }
+        for (int i = 0; i < NAMES.length; i++) {
+            COUNTS[i].reset();
+            NANOS[i].reset();
+            TOTAL_COUNTS[i].reset();
+            TOTAL_NANOS[i].reset();
+        }
+        lastReportNanos = System.nanoTime();
     }
 
     private static void maybeReport(long now) {
@@ -118,5 +176,18 @@ public final class ArgusBenchmark {
             out[i] = new LongAdder();
         }
         return out;
+    }
+
+    /**
+     * Immutable benchmark bucket snapshot for final run reports.
+     */
+    public record BucketSnapshot(String name, long count, long nanos) {
+        public double totalMillis() {
+            return nanos / 1_000_000.0D;
+        }
+
+        public double averageNanos() {
+            return count == 0L ? 0.0D : (double) nanos / count;
+        }
     }
 }

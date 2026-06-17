@@ -85,27 +85,28 @@ Local Fabric test resource packs go into `src/fabric/run/resourcepacks/`. The Ne
 
 ### Autopilot Benchmark
 
-Argus includes a dev-only autopilot benchmark for comparing Fabric and NeoForge with the same save and resource packs. It opens a local world, drives a deterministic movement/camera route, logs FPS plus renderer buckets, and closes the client after the final sample.
+Argus includes a dev-only autopilot benchmark for comparing Fabric and NeoForge with the same resource packs and a freshly generated world. Each run deletes and recreates the dedicated `ArgusBenchmark` save with a stable seed, drives a deterministic movement/camera route, logs FPS plus renderer buckets, and closes the client after the final sample.
 
 Example Fabric run:
 
 ```powershell
-.\gradlew.bat -Dargus.benchmark=true -Dargus.benchmark.autopilot=true -Dargus.benchmark.autopilotTicks=650 "-Dargus.benchmark.world=New World" :src:fabric:runClient
+.\gradlew.bat -Dargus.benchmark=true -Dargus.benchmark.autopilot=true -Dargus.benchmark.autopilotTicks=650 -Dargus.benchmark.seed=329562103 :src:fabric:runClient
 ```
 
 Example NeoForge run:
 
 ```powershell
-.\gradlew.bat -Dargus.benchmark=true -Dargus.benchmark.autopilot=true -Dargus.benchmark.autopilotTicks=650 "-Dargus.benchmark.world=New World" :src:neoforge:runClient
+.\gradlew.bat -Dargus.benchmark=true -Dargus.benchmark.autopilot=true -Dargus.benchmark.autopilotTicks=650 -Dargus.benchmark.seed=329562103 :src:neoforge:runClient
 ```
 
 Useful options:
 
 - `argus.benchmark.closeOnComplete=false`: keep the client open after the route.
 - `argus.benchmark.closeDelayTicks=40`: delay before automatic shutdown.
-- `argus.benchmark.world=<name>`: local save to open.
+- `argus.benchmark.world=<name>`: dedicated benchmark save folder to recreate; default `ArgusBenchmark`.
+- `argus.benchmark.seed=<seed>`: fixed world seed; accepts numeric or text seeds. The current comparison seed is `329562103`, and it is also the dev benchmark default.
 
-For fair loader comparisons, restore the same save snapshot before each run and compare both logs, especially `sodium.ctm`, `ctm.resolve`, `ctm.prefilter`, `ctm.neighbor_view`, and FPS min/avg/max.
+For fair loader comparisons, use the same seed and resource packs on both loaders and compare both logs, especially `sodium.ctm`, `ctm.resolve`, `ctm.prefilter`, `ctm.neighbor_view`, and FPS min/avg/max.
 
 ## Project Layout
 

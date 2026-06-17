@@ -1,0 +1,23 @@
+version:4903
+ao:true
+biomeBlendRadius:2
+chunkSectionFadeInTime:0.75
+cutoutLeaves:true
+enableVsync:false
+entityDistanceScaling:1.0
+entityShadows:true
+fov:1.0
+fovEffectScale:1.0
+preferredGraphicsBackend:"default"
+graphicsPreset:"custom"
+prioritizeChunkUpdates:1
+fullscreen:true
+exclusiveFullscreen:false
+maxFps:260
+renderDistance:20
+simulationDistance:12
+cloudsType:"fancy"
+particles:0
+resourcePacks:["vanilla","mod_resources","mod/argus:resourcepacks/default_ctm_glass","file/Connected-Bricks 1.21.9+ v1.0.zip","file/Connected-Paths 26.1 – 26.1.2 v2.1.1.zip","file/Connected-Rocks 1.21.9+ v1.1.1.zip","file/Dramatic Skys Demo 1.5.3.36.4.zip"]
+incompatibleResourcePacks:["file/Connected-Bricks 1.21.9+ v1.0.zip","file/Connected-Paths 26.1 – 26.1.2 v2.1.1.zip","file/Connected-Rocks 1.21.9+ v1.1.1.zip"]
+key_key.debug.reloadResourcePacks:key.keyboard.t
